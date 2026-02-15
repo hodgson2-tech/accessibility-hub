@@ -4,200 +4,91 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Accessible RSVP Speed Reader</title>
+    <link rel="stylesheet" href="css/style.css">
     <style>
-        /* Base Styling & Accessibility Transitions */
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            padding: 40px 20px; 
-            transition: background-color 0.3s, color 0.3s;
-            background-color: #f4f4f9;
-            color: #333;
-        }
-
-        #reader-container { 
-            width: 100%;
-            max-width: 500px; 
-            height: 120px; 
-            border: 3px solid #ccc; 
-            border-radius: 8px;
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            font-size: 42px; 
-            font-weight: bold; 
-            margin-bottom: 20px; 
-            background-color: inherit;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-
+        .tool-wrapper { display: flex; flex-direction: column; align-items: center; }
+        #reader-container { width: 100%; max-width: 500px; height: 120px; border: 3px solid var(--primary-color); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 42px; font-weight: bold; margin-bottom: 20px; background-color: var(--card-bg); box-shadow: var(--card-shadow); }
         .word-container { display: flex; width: 100%; font-family: monospace; }
         .left-part { width: 50%; text-align: right; }
         .center-letter { color: #e63946; } 
         .right-part { width: 50%; text-align: left; }
-
-        textarea { 
-            width: 100%;
-            max-width: 500px; 
-            height: 150px; 
-            margin-bottom: 20px; 
-            padding: 10px;
-            border-radius: 4px;
-            border: 1px solid #ccc;
-            font-size: 16px;
-        }
-        
+        textarea { width: 100%; max-width: 500px; height: 150px; margin-bottom: 20px; padding: 10px; border-radius: 4px; border: 1px solid var(--primary-color); font-size: 16px; background-color: var(--bg-color); color: var(--text-color); }
         .controls { display: flex; flex-direction: column; gap: 15px; width: 100%; max-width: 500px;}
-        .control-group { display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.05); padding: 10px; border-radius: 6px;}
-        
-        button {
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-            border: none;
-            border-radius: 4px;
-            background-color: #007bff;
-            color: white;
-            font-weight: bold;
-        }
-        button:hover { background-color: #0056b3; }
+        .control-group { display: flex; justify-content: space-between; align-items: center; background: var(--card-bg); padding: 10px; border-radius: 6px; box-shadow: var(--card-shadow);}
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; border: none; border-radius: 4px; background-color: var(--primary-color); color: white; font-weight: bold; }
         #stop-btn { background-color: #dc3545; }
-        #stop-btn:hover { background-color: #a71d2a; }
-        
-        input[type="color"] { cursor: pointer; border: none; width: 40px; height: 30px; }
     </style>
 </head>
 <body>
+    <script>
+        if (localStorage.getItem('hub-theme') === 'dark') document.body.setAttribute('data-theme', 'dark');
+        if (localStorage.getItem('hub-font') && localStorage.getItem('hub-font') !== 'default') document.body.classList.add(localStorage.getItem('hub-font'));
+    </script>
 
-    <a href="index.html" style="display: block; margin-bottom: 20px; color: #007bff; text-decoration: none; font-weight: bold; width: 100%; max-width: 500px; text-align: left;">&larr; Back to Hub</a>
+    <div class="container tool-wrapper">
+        <a href="index.html" style="display: block; margin-bottom: 20px; color: var(--primary-color); text-decoration: none; font-weight: bold; width: 100%; max-width: 500px; text-align: left;">&larr; Back to Hub</a>
 
-    <div id="reader-container">
-        <div id="word-display" style="display: none;" class="word-container">
-            <span class="left-part" id="left-part"></span>
-            <span class="center-letter" id="center-letter"></span>
-            <span class="right-part" id="right-part"></span>
+        <div id="reader-container">
+            <div id="word-display" style="display: none;" class="word-container">
+                <span class="left-part" id="left-part"></span>
+                <span class="center-letter" id="center-letter"></span>
+                <span class="right-part" id="right-part"></span>
+            </div>
         </div>
-    </div>
 
-    <textarea id="text-input" placeholder="Paste your text here..."></textarea>
+        <textarea id="text-input" placeholder="Paste your text here..."></textarea>
 
-    <div class="controls">
-        <div class="control-group" style="background: none; padding: 0;">
-            <button id="start-btn">Start Reading</button>
-            <button id="stop-btn">Pause / Stop</button>
-        </div>
-        
-        <div class="control-group">
-            <label><strong>Speed:</strong> <span id="wpm-display">300</span> WPM</label>
-            <input type="range" id="wpm-slider" min="300" max="900" step="25" value="300" style="width: 200px;">
-        </div>
-        
-        <div class="control-group">
-            <label>Background Color (Overlay):</label>
-            <input type="color" id="bg-color" value="#f4f4f9">
-        </div>
-         <div class="control-group">
-            <label>Text Color:</label>
-            <input type="color" id="text-color" value="#333333">
-        </div>
-        <div class="control-group">
-            <label>Highlight (Focus Letter) Color:</label>
-            <input type="color" id="highlight-color" value="#e63946">
+        <div class="controls">
+            <div class="control-group" style="background: none; box-shadow: none; padding: 0;">
+                <button id="start-btn">Start Reading</button>
+                <button id="stop-btn">Pause / Stop</button>
+            </div>
+            <div class="control-group">
+                <label><strong>Speed:</strong> <span id="wpm-display">300</span> WPM</label>
+                <input type="range" id="wpm-slider" min="300" max="900" step="25" value="300" style="width: 200px;">
+            </div>
         </div>
     </div>
 
 <script>
-    let words = [];
-    let currentIndex = 0;
-    let playing = false;
-    let timeoutId = null;
-
+    let words = []; let currentIndex = 0; let playing = false; let timeoutId = null;
     const textInput = document.getElementById('text-input');
-    const startBtn = document.getElementById('start-btn');
-    const stopBtn = document.getElementById('stop-btn');
-    const wpmSlider = document.getElementById('wpm-slider');
-    const wpmDisplay = document.getElementById('wpm-display');
+    const startBtn = document.getElementById('start-btn'); const stopBtn = document.getElementById('stop-btn');
+    const wpmSlider = document.getElementById('wpm-slider'); const wpmDisplay = document.getElementById('wpm-display');
     const wordDisplay = document.getElementById('word-display');
-    const leftPartEl = document.getElementById('left-part');
-    const centerLetterEl = document.getElementById('center-letter');
-    const rightPartEl = document.getElementById('right-part');
+    const leftPartEl = document.getElementById('left-part'); const centerLetterEl = document.getElementById('center-letter'); const rightPartEl = document.getElementById('right-part');
 
-    document.getElementById('bg-color').addEventListener('input', (e) => {
-        document.body.style.backgroundColor = e.target.value;
-    });
-    document.getElementById('text-color').addEventListener('input', (e) => {
-        document.body.style.color = e.target.value;
-    });
-    document.getElementById('highlight-color').addEventListener('input', (e) => {
-        centerLetterEl.style.color = e.target.value;
-    });
-
-    wpmSlider.addEventListener('input', (e) => {
-        wpmDisplay.textContent = e.target.value;
-    });
+    wpmSlider.addEventListener('input', (e) => wpmDisplay.textContent = e.target.value);
 
     function getPivotIndex(word) {
         const len = word.length;
-        if (len <= 1) return 0;
-        if (len >= 2 && len <= 5) return 1;
-        if (len >= 6 && len <= 9) return 2;
-        if (len >= 10 && len <= 13) return 3;
-        return 4;
+        if (len <= 1) return 0; if (len >= 2 && len <= 5) return 1; if (len >= 6 && len <= 9) return 2; if (len >= 10 && len <= 13) return 3; return 4;
     }
 
     function displayWord(word) {
         const pivot = getPivotIndex(word);
-        leftPartEl.textContent = word.substring(0, pivot);
-        centerLetterEl.textContent = word.charAt(pivot);
-        rightPartEl.textContent = word.substring(pivot + 1);
+        leftPartEl.textContent = word.substring(0, pivot); centerLetterEl.textContent = word.charAt(pivot); rightPartEl.textContent = word.substring(pivot + 1);
         wordDisplay.style.display = 'flex';
     }
 
     function play() {
-        if (currentIndex >= words.length) {
-            playing = false;
-            wordDisplay.style.display = 'none';
-            currentIndex = 0;
-            return;
-        }
-
-        displayWord(words[currentIndex]);
-        currentIndex++;
-
-        const wpm = parseInt(wpmSlider.value, 10);
-        const msPerWord = 60000 / wpm; 
-
-        let delay = msPerWord;
+        if (currentIndex >= words.length) { playing = false; wordDisplay.style.display = 'none'; currentIndex = 0; return; }
+        displayWord(words[currentIndex]); currentIndex++;
+        let delay = 60000 / parseInt(wpmSlider.value, 10);
         const currentWord = words[currentIndex - 1];
-        if (currentWord.endsWith('.') || currentWord.endsWith('!') || currentWord.endsWith('?')) {
-            delay *= 1.8;
-        } else if (currentWord.endsWith(',') || currentWord.endsWith(';')) {
-            delay *= 1.3;
-        }
-
+        if (currentWord.endsWith('.') || currentWord.endsWith('!') || currentWord.endsWith('?')) delay *= 1.8;
+        else if (currentWord.endsWith(',') || currentWord.endsWith(';')) delay *= 1.3;
         timeoutId = setTimeout(play, delay);
     }
 
     startBtn.addEventListener('click', () => {
         if (playing) return; 
-        
-        const text = textInput.value.trim();
-        if (!text) return;
-        
-        if (currentIndex === 0) {
-            words = text.split(/\s+/);
-        }
-
-        playing = true;
-        play();
+        const text = textInput.value.trim(); if (!text) return;
+        if (currentIndex === 0) words = text.split(/\s+/);
+        playing = true; play();
     });
 
-    stopBtn.addEventListener('click', () => {
-        playing = false;
-        clearTimeout(timeoutId);
-    });
+    stopBtn.addEventListener('click', () => { playing = false; clearTimeout(timeoutId); });
 </script>
 </body>
 </html>
