@@ -5,86 +5,123 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Accessibility Hub</title>
     <link rel="stylesheet" href="css/style.css">
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#007bff">
 </head>
 <body>
 
-    <div class="preferences-bar">
-        <select id="font-selector">
+    <div class="preferences-bar" role="toolbar" aria-label="Accessibility Preferences">
+        <select id="font-selector" aria-label="Select website font">
             <option value="default">Standard Font</option>
             <option value="font-lexend">Lexend (High Legibility)</option>
             <option value="font-comic">Comic Sans (Dyslexia)</option>
         </select>
-        <button id="dark-mode-toggle">🌙 Dark Mode</button>
+        <button id="dark-mode-toggle" aria-label="Toggle dark mode" aria-pressed="false">🌙 Dark Mode</button>
     </div>
 
-    <header>
+    <header role="banner">
         <h1>Open Access Learning Hub</h1>
         <p>Free, customizable tools for specific learning needs.</p>
     </header>
 
-    <div class="container">
+    <main class="container" role="main">
         <h2>Available Tools</h2>
         
-        <div class="tool-grid">
-            <a href="rsvp-reader.html" class="tool-card">
-                <div class="card-icon">⏱️</div>
+        <div class="tool-grid" role="navigation" aria-label="Accessibility Tools List">
+            <a href="rsvp-reader.html" class="tool-card" aria-label="Open RSVP Speed Reader">
+                <div class="card-icon" aria-hidden="true">⏱️</div>
                 <h3>RSVP Speed Reader</h3>
                 <p>Read faster with fixed-point focus and customizable visual overlays.</p>
             </a>
 
-            <a href="bionic-reader.html" class="tool-card">
-                <div class="card-icon">🎯</div>
+            <a href="bionic-reader.html" class="tool-card" aria-label="Open Bionic Reading Formatter">
+                <div class="card-icon" aria-hidden="true">🎯</div>
                 <h3>Bionic Reading Formatter</h3>
                 <p>Add visual anchor points to text to guide your eyes and improve focus.</p>
             </a>
             
-             <a href="cognitive-chunker.html" class="tool-card">
-                <div class="card-icon">🧩</div>
+             <a href="cognitive-chunker.html" class="tool-card" aria-label="Open Cognitive Load Reducer">
+                <div class="card-icon" aria-hidden="true">🧩</div>
                 <h3>Cognitive Load Reducer</h3>
                 <p>Break down dense walls of text into distinct, manageable bullet points.</p>
             </a>
 
-            <a href="dyslexia-converter.html" class="tool-card">
-                <div class="card-icon">📝</div>
+            <a href="dyslexia-converter.html" class="tool-card" aria-label="Open Dyslexia-Friendly Converter">
+                <div class="card-icon" aria-hidden="true">📝</div>
                 <h3>Dyslexia-Friendly Converter</h3>
                 <p>Strip complex formatting and apply evidence-based readability standards.</p>
             </a>
 
-            <a href="focus-mask.html" class="tool-card">
-                <div class="card-icon">🔦</div>
+            <a href="focus-mask.html" class="tool-card" aria-label="Open High-Contrast Focus Mask">
+                <div class="card-icon" aria-hidden="true">🔦</div>
                 <h3>High-Contrast Focus Mask</h3>
                 <p>Use a digital reading ruler that follows your cursor to eliminate visual distractions.</p>
             </a>
 
-            <a href="exam-timer.html" class="tool-card">
-                <div class="card-icon">⏳</div>
+            <a href="exam-timer.html" class="tool-card" aria-label="Open Exam Adjustment Timer">
+                <div class="card-icon" aria-hidden="true">⏳</div>
                 <h3>Exam Adjustment Timer</h3>
                 <p>Invigilator dashboard to calculate exact finish times with extra time and rest breaks.</p>
             </a>
         </div>
-    </div>
+    </main>
 
 <script>
+    // Theme & Font Logic with LocalStorage (Memory Save)
     const themeToggle = document.getElementById('dark-mode-toggle');
     const fontSelector = document.getElementById('font-selector');
     const body = document.body;
 
+    // Load saved preferences on page load
+    window.onload = () => {
+        const savedTheme = localStorage.getItem('hub-theme');
+        const savedFont = localStorage.getItem('hub-font');
+
+        if (savedTheme === 'dark') {
+            body.setAttribute('data-theme', 'dark');
+            themeToggle.textContent = '☀️ Light Mode';
+            themeToggle.setAttribute('aria-pressed', 'true');
+        }
+
+        if (savedFont && savedFont !== 'default') {
+            body.classList.add(savedFont);
+            fontSelector.value = savedFont;
+        }
+    };
+
+    // Toggle Dark Mode and Save
     themeToggle.addEventListener('click', () => {
         if (body.getAttribute('data-theme') === 'dark') {
             body.removeAttribute('data-theme');
             themeToggle.textContent = '🌙 Dark Mode';
+            themeToggle.setAttribute('aria-pressed', 'false');
+            localStorage.setItem('hub-theme', 'light');
         } else {
             body.setAttribute('data-theme', 'dark');
             themeToggle.textContent = '☀️ Light Mode';
+            themeToggle.setAttribute('aria-pressed', 'true');
+            localStorage.setItem('hub-theme', 'dark');
         }
     });
 
+    // Real-time Font Change and Save
     fontSelector.addEventListener('change', (e) => {
         body.classList.remove('font-lexend', 'font-comic');
-        if (e.target.value !== 'default') {
-            body.classList.add(e.target.value);
+        const selectedFont = e.target.value;
+        
+        if (selectedFont !== 'default') {
+            body.classList.add(selectedFont);
         }
+        localStorage.setItem('hub-font', selectedFont);
     });
+
+    // Register Service Worker for True Offline Mode
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js').catch(err => console.log('SW setup pending'));
+        });
+    }
 </script>
 </body>
 </html>
