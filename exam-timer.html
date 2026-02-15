@@ -7,30 +7,26 @@
     <link rel="stylesheet" href="css/style.css">
     <style>
         .timer-container { width: 100%; max-width: 600px; margin: 0 auto; }
-        .input-group { background: var(--card-bg); padding: 20px; border-radius: 8px; box-shadow: var(--card-shadow); margin-bottom: 20px; }
+        .input-group { background: var(--card-bg); padding: 20px; border-radius: 8px; box-shadow: var(--card-shadow); margin-bottom: 20px; border: 1px solid var(--border-color); }
         .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
-        label { font-weight: bold; display: block; margin-bottom: 5px; font-size: 14px; }
-        input[type="time"], input[type="number"] { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; box-sizing: border-box; }
-        
+        label { font-weight: bold; display: block; margin-bottom: 5px; font-size: 14px; color: var(--text-color); }
+        input[type="time"], input[type="number"] { width: 100%; padding: 10px; border: 1px solid var(--primary-color); border-radius: 6px; font-size: 16px; box-sizing: border-box; background: var(--bg-color); color: var(--text-color); }
         .adj-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
         .adj-btn { padding: 10px 5px; border: 2px solid var(--primary-color); background: transparent; color: var(--text-color); font-weight: bold; border-radius: 6px; cursor: pointer; transition: all 0.2s; font-size: 14px;}
         .adj-btn.active { background: var(--primary-color); color: white; }
-        
         .dashboard { background: var(--card-bg); padding: 30px 20px; border-radius: 12px; text-align: center; box-shadow: var(--card-shadow); border: 2px solid var(--primary-color);}
         .time-display { font-size: 3.5rem; font-weight: bold; color: var(--primary-color); margin: 10px 0; line-height: 1; }
-        .sub-text { font-size: 16px; opacity: 0.8; margin-bottom: 20px; }
-        
+        .sub-text { font-size: 16px; opacity: 0.8; margin-bottom: 20px; color: var(--text-color); }
         .break-btn { background: #ffc107; color: #000; font-size: 1.2rem; padding: 15px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; border: none; transition: background 0.2s; }
         .break-btn.active-break { background: #dc3545; color: white; animation: pulse 1.5s infinite; }
-        
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.7; }
-            100% { opacity: 1; }
-        }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
     </style>
 </head>
 <body>
+    <script>
+        if (localStorage.getItem('hub-theme') === 'dark') document.body.setAttribute('data-theme', 'dark');
+        if (localStorage.getItem('hub-font') && localStorage.getItem('hub-font') !== 'default') document.body.classList.add(localStorage.getItem('hub-font'));
+    </script>
 
     <div class="timer-container" style="padding: 20px;">
         <a href="index.html" style="display: block; margin-bottom: 20px; color: var(--primary-color); text-decoration: none; font-weight: bold;">&larr; Back to Hub</a>
@@ -63,7 +59,6 @@
             <h3 style="margin: 0; color: var(--text-color);">Official Finish Time</h3>
             <div class="time-display" id="finish-time-display">--:--</div>
             <div class="sub-text" id="break-tracker-text">Total Rest Break Time Added: 0 mins</div>
-            
             <button class="break-btn" id="break-btn">⏸️ Start Supervised Rest Break</button>
         </div>
     </div>
@@ -81,84 +76,8 @@
     let breakStartTime = null;
     let breakInterval = null;
 
-    // Set default start time to right now when page loads
     window.onload = () => {
         const now = new Date();
         const hours = String(now.getHours()).padStart(2, '0');
         const minutes = String(now.getMinutes()).padStart(2, '0');
-        startTimeInput.value = `${hours}:${minutes}`;
-        calculateFinishTime();
-    };
-
-    // Handle Extra Time Buttons
-    adjBtns.forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            adjBtns.forEach(b => b.classList.remove('active'));
-            e.currentTarget.classList.add('active');
-            multiplier = parseFloat(e.currentTarget.getAttribute('data-mult'));
-            calculateFinishTime();
-        });
-    });
-
-    // Recalculate if user changes minutes or start time manually
-    durationInput.addEventListener('input', calculateFinishTime);
-    startTimeInput.addEventListener('input', calculateFinishTime);
-
-    // Supervised Rest Break Logic
-    breakBtn.addEventListener('click', () => {
-        if (!breakStartTime) {
-            // Start Break
-            breakStartTime = Date.now();
-            breakBtn.classList.add('active-break');
-            breakBtn.innerHTML = '▶️ End Rest Break & Resume Exam';
-            
-            // Update the display every second to show the finish time pushing back
-            breakInterval = setInterval(calculateFinishTime, 1000);
-        } else {
-            // End Break
-            clearInterval(breakInterval);
-            totalBreakTimeMs += (Date.now() - breakStartTime);
-            breakStartTime = null;
-            breakBtn.classList.remove('active-break');
-            breakBtn.innerHTML = '⏸️ Start Supervised Rest Break';
-            calculateFinishTime();
-        }
-    });
-
-    // Master Calculation Function
-    function calculateFinishTime() {
-        const standardMins = parseInt(durationInput.value) || 0;
-        const timeVal = startTimeInput.value;
-        if (!timeVal || standardMins === 0) return;
-
-        // Calculate allowed exam time
-        const totalAllowedMins = standardMins * multiplier;
-
-        // Parse the start time
-        const [hours, minutes] = timeVal.split(':').map(Number);
-        const examStart = new Date();
-        examStart.setHours(hours, minutes, 0, 0);
-
-        // Factor in current active break time if running
-        let currentActiveBreak = 0;
-        if (breakStartTime) {
-            currentActiveBreak = Date.now() - breakStartTime;
-        }
-
-        // Add duration + completed breaks + current active break
-        const examEnd = new Date(examStart.getTime() + (totalAllowedMins * 60000) + totalBreakTimeMs + currentActiveBreak);
-
-        // Format to HH:MM
-        const finalHours = String(examEnd.getHours()).padStart(2, '0');
-        const finalMinutes = String(examEnd.getMinutes()).padStart(2, '0');
-        finishTimeDisplay.textContent = `${finalHours}:${finalMinutes}`;
-
-        // Update Tracker Text
-        const totalBreakSecs = Math.floor((totalBreakTimeMs + currentActiveBreak) / 1000);
-        const breakMins = Math.floor(totalBreakSecs / 60);
-        const breakSecsRemainder = totalBreakSecs % 60;
-        breakTrackerText.textContent = `Total Rest Break Time Added: ${breakMins}m ${breakSecsRemainder}s`;
-    }
-</script>
-</body>
-</html>
+        startTimeInput.value =
