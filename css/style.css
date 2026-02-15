@@ -12,6 +12,7 @@
     --border-color: transparent;
     --header-bg: #007bff;
     --header-text: #ffffff;
+    --focus-color: #ff9900; /* High contrast orange for keyboard nav */
 }
 
 /* Dark Mode Variables */
@@ -29,7 +30,7 @@
 
 /* Base Styles with Smooth Transitions */
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Default */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: var(--bg-color);
     color: var(--text-color);
     margin: 0;
@@ -41,6 +42,13 @@ body {
 /* Font Override Classes */
 body.font-lexend { font-family: 'Lexend', sans-serif; }
 body.font-comic { font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif; }
+
+/* Accessibility: High-contrast focus states for keyboard navigation */
+*:focus-visible {
+    outline: 3px solid var(--focus-color);
+    outline-offset: 3px;
+    border-radius: 4px;
+}
 
 header {
     background-color: var(--header-bg);
@@ -119,3 +127,13 @@ header {
 }
 
 h3 { margin-top: 0; color: var(--primary-color); }
+
+/* Utility Classes for Future Tool Buttons */
+.action-buttons {
+    display: flex; gap: 10px; margin-bottom: 20px;
+}
+.action-btn {
+    flex: 1; padding: 10px; font-size: 14px; cursor: pointer; border: none; border-radius: 4px;
+    background-color: #6c757d; color: white; font-weight: bold; transition: background-color 0.2s;
+}
+.action-btn:hover { background-color: #5a6268; }
