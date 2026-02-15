@@ -54,6 +54,10 @@
     </style>
 </head>
 <body>
+    <script>
+        if (localStorage.getItem('hub-theme') === 'dark') document.body.setAttribute('data-theme', 'dark');
+        if (localStorage.getItem('hub-font') && localStorage.getItem('hub-font') !== 'default') document.body.classList.add(localStorage.getItem('hub-font'));
+    </script>
 
     <div class="container">
         <a href="index.html" style="display: block; margin-bottom: 20px; color: #007bff; text-decoration: none; font-weight: bold;">&larr; Back to Hub</a>
