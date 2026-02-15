@@ -8,6 +8,15 @@
 </head>
 <body>
 
+    <div class="preferences-bar">
+        <select id="font-selector">
+            <option value="default">Standard Font</option>
+            <option value="font-lexend">Lexend (High Legibility)</option>
+            <option value="font-comic">Comic Sans (Dyslexia)</option>
+        </select>
+        <button id="dark-mode-toggle">🌙 Dark Mode</button>
+    </div>
+
     <header>
         <h1>Open Access Learning Hub</h1>
         <p>Free, customizable tools for specific learning needs.</p>
@@ -18,31 +27,64 @@
         
         <div class="tool-grid">
             <a href="rsvp-reader.html" class="tool-card">
+                <div class="card-icon">⏱️</div>
                 <h3>RSVP Speed Reader</h3>
                 <p>Read faster with fixed-point focus and customizable visual overlays.</p>
             </a>
 
             <a href="bionic-reader.html" class="tool-card">
+                <div class="card-icon">🎯</div>
                 <h3>Bionic Reading Formatter</h3>
                 <p>Add visual anchor points to text to guide your eyes and improve focus.</p>
             </a>
             
              <a href="cognitive-chunker.html" class="tool-card">
+                <div class="card-icon">🧩</div>
                 <h3>Cognitive Load Reducer</h3>
                 <p>Break down dense walls of text into distinct, manageable bullet points.</p>
             </a>
 
             <a href="dyslexia-converter.html" class="tool-card">
+                <div class="card-icon">📝</div>
                 <h3>Dyslexia-Friendly Converter</h3>
-                <p>Strip complex formatting and apply evidence-based readability standards to documents.</p>
+                <p>Strip complex formatting and apply evidence-based readability standards.</p>
             </a>
 
             <a href="focus-mask.html" class="tool-card">
+                <div class="card-icon">🔦</div>
                 <h3>High-Contrast Focus Mask</h3>
-                <p>Use a digital reading ruler that follows your cursor to eliminate surrounding visual distractions.</p>
+                <p>Use a digital reading ruler that follows your cursor to eliminate visual distractions.</p>
             </a>
         </div>
     </div>
+
+<script>
+    // Theme & Font Logic
+    const themeToggle = document.getElementById('dark-mode-toggle');
+    const fontSelector = document.getElementById('font-selector');
+    const body = document.body;
+
+    // Toggle Dark Mode
+    themeToggle.addEventListener('click', () => {
+        if (body.getAttribute('data-theme') === 'dark') {
+            body.removeAttribute('data-theme');
+            themeToggle.textContent = '🌙 Dark Mode';
+        } else {
+            body.setAttribute('data-theme', 'dark');
+            themeToggle.textContent = '☀️ Light Mode';
+        }
+    });
+
+    // Real-time Font Change
+    fontSelector.addEventListener('change', (e) => {
+        // Remove existing font classes
+        body.classList.remove('font-lexend', 'font-comic');
+        // Add selected font class
+        if (e.target.value !== 'default') {
+            body.classList.add(e.target.value);
+        }
+    });
+</script>
 
 </body>
 </html>
