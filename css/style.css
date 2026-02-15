@@ -1,54 +1,121 @@
-/* Shared Hub Styles */
+/* Import Lexend Font for High Legibility */
+@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;600&display=swap');
+
+/* Dynamic Color Variables */
+:root {
+    --bg-color: #f4f4f9;
+    --text-color: #333333;
+    --card-bg: #ffffff;
+    --primary-color: #007bff;
+    --card-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    --card-shadow-hover: 0 12px 24px rgba(0,123,255,0.15);
+    --border-color: transparent;
+    --header-bg: #007bff;
+    --header-text: #ffffff;
+}
+
+/* Dark Mode Variables */
+[data-theme="dark"] {
+    --bg-color: #121212;
+    --text-color: #e0e0e0;
+    --card-bg: #1e1e1e;
+    --primary-color: #4da3ff;
+    --card-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    --card-shadow-hover: 0 12px 24px rgba(77,163,255,0.2);
+    --border-color: #333333;
+    --header-bg: #1a1a1a;
+    --header-text: #e0e0e0;
+}
+
+/* Base Styles with Smooth Transitions */
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f4f4f9;
-    color: #333;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Default */
+    background-color: var(--bg-color);
+    color: var(--text-color);
     margin: 0;
     padding: 0;
     line-height: 1.6;
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+/* Font Override Classes */
+body.font-lexend { font-family: 'Lexend', sans-serif; }
+body.font-comic { font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif; }
+
 header {
-    background-color: #007bff;
-    color: white;
-    padding: 20px;
+    background-color: var(--header-bg);
+    color: var(--header-text);
+    padding: 30px 20px;
     text-align: center;
+    transition: background-color 0.3s ease;
+}
+
+/* Preferences Bar (Dark Mode & Fonts) */
+.preferences-bar {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    padding: 15px;
+    background-color: var(--card-bg);
+    border-bottom: 1px solid var(--border-color);
+    transition: background-color 0.3s ease;
+}
+
+.preferences-bar select, .preferences-bar button {
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: 1px solid var(--primary-color);
+    background: transparent;
+    color: var(--text-color);
+    font-size: 14px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.2s ease;
+}
+
+.preferences-bar button:hover, .preferences-bar select:hover {
+    background-color: var(--primary-color);
+    color: #fff;
 }
 
 .container {
-    max-width: 800px;
+    max-width: 900px;
     margin: 40px auto;
     padding: 0 20px;
 }
 
+/* Grid & Animated Cards */
 .tool-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 25px;
     margin-top: 30px;
 }
 
 .tool-card {
-    background: white;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    background: var(--card-bg);
+    padding: 30px 20px;
+    border-radius: 12px;
+    box-shadow: var(--card-shadow);
     text-align: center;
     text-decoration: none;
     color: inherit;
-    transition: transform 0.2s;
-    border: 2px solid transparent;
+    border: 2px solid var(--border-color);
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease, border-color 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .tool-card:hover {
-    transform: translateY(-5px);
-    border-color: #007bff;
+    transform: translateY(-8px);
+    box-shadow: var(--card-shadow-hover);
+    border-color: var(--primary-color);
 }
 
-.back-link {
-    display: inline-block;
-    margin-top: 20px;
-    text-decoration: none;
-    color: #007bff;
-    font-weight: bold;
+.card-icon {
+    font-size: 40px;
+    margin-bottom: 15px;
 }
+
+h3 { margin-top: 0; color: var(--primary-color); }
