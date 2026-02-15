@@ -80,4 +80,64 @@
         const now = new Date();
         const hours = String(now.getHours()).padStart(2, '0');
         const minutes = String(now.getMinutes()).padStart(2, '0');
-        startTimeInput.value =
+        startTimeInput.value = `${hours}:${minutes}`;
+        calculateFinishTime();
+    };
+
+    adjBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            adjBtns.forEach(b => b.classList.remove('active'));
+            e.currentTarget.classList.add('active');
+            multiplier = parseFloat(e.currentTarget.getAttribute('data-mult'));
+            calculateFinishTime();
+        });
+    });
+
+    durationInput.addEventListener('input', calculateFinishTime);
+    startTimeInput.addEventListener('input', calculateFinishTime);
+
+    breakBtn.addEventListener('click', () => {
+        if (!breakStartTime) {
+            breakStartTime = Date.now();
+            breakBtn.classList.add('active-break');
+            breakBtn.innerHTML = '▶️ End Rest Break & Resume Exam';
+            breakInterval = setInterval(calculateFinishTime, 1000);
+        } else {
+            clearInterval(breakInterval);
+            totalBreakTimeMs += (Date.now() - breakStartTime);
+            breakStartTime = null;
+            breakBtn.classList.remove('active-break');
+            breakBtn.innerHTML = '⏸️ Start Supervised Rest Break';
+            calculateFinishTime();
+        }
+    });
+
+    function calculateFinishTime() {
+        const standardMins = parseInt(durationInput.value) || 0;
+        const timeVal = startTimeInput.value;
+        if (!timeVal || standardMins === 0) return;
+
+        const totalAllowedMins = standardMins * multiplier;
+        const [hours, minutes] = timeVal.split(':').map(Number);
+        const examStart = new Date();
+        examStart.setHours(hours, minutes, 0, 0);
+
+        let currentActiveBreak = 0;
+        if (breakStartTime) {
+            currentActiveBreak = Date.now() - breakStartTime;
+        }
+
+        const examEnd = new Date(examStart.getTime() + (totalAllowedMins * 60000) + totalBreakTimeMs + currentActiveBreak);
+        
+        const finalHours = String(examEnd.getHours()).padStart(2, '0');
+        const finalMinutes = String(examEnd.getMinutes()).padStart(2, '0');
+        finishTimeDisplay.textContent = `${finalHours}:${finalMinutes}`;
+
+        const totalBreakSecs = Math.floor((totalBreakTimeMs + currentActiveBreak) / 1000);
+        const breakMins = Math.floor(totalBreakSecs / 60);
+        const breakSecsRemainder = totalBreakSecs % 60;
+        breakTrackerText.textContent = `Total Rest Break Time Added: ${breakMins}m ${breakSecsRemainder}s`;
+    }
+</script>
+</body>
+</html>
