@@ -55,16 +55,20 @@
                 <h3>High-Contrast Focus Mask</h3>
                 <p>Use a digital reading ruler that follows your cursor to eliminate visual distractions.</p>
             </a>
+
+            <a href="exam-timer.html" class="tool-card">
+                <div class="card-icon">⏳</div>
+                <h3>Exam Adjustment Timer</h3>
+                <p>Invigilator dashboard to calculate exact finish times with extra time and rest breaks.</p>
+            </a>
         </div>
     </div>
 
 <script>
-    // Theme & Font Logic
     const themeToggle = document.getElementById('dark-mode-toggle');
     const fontSelector = document.getElementById('font-selector');
     const body = document.body;
 
-    // Toggle Dark Mode
     themeToggle.addEventListener('click', () => {
         if (body.getAttribute('data-theme') === 'dark') {
             body.removeAttribute('data-theme');
@@ -75,16 +79,12 @@
         }
     });
 
-    // Real-time Font Change
     fontSelector.addEventListener('change', (e) => {
-        // Remove existing font classes
         body.classList.remove('font-lexend', 'font-comic');
-        // Add selected font class
         if (e.target.value !== 'default') {
             body.classList.add(e.target.value);
         }
     });
 </script>
-
 </body>
 </html>
