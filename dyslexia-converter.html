@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dyslexia-Friendly Document Converter</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            padding: 40px 20px; 
+            background-color: #f4f4f9;
+            color: #333;
+        }
+        .container { width: 100%; max-width: 800px; }
+        .controls {
+            background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 20px;
+        }
+        .control-group { display: flex; flex-direction: column; }
+        label { font-weight: bold; margin-bottom: 5px; font-size: 14px; }
+        select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; width: 100%; background: #fff;}
+        textarea { 
+            width: 100%; height: 150px; margin-bottom: 20px; padding: 10px; border-radius: 4px;
+            border: 1px solid #ccc; font-size: 16px; box-sizing: border-box;
+        }
+        #output-container {
+            background: #fffff8; /* Default soft cream */
+            padding: 40px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            min-height: 200px; font-size: 18px; line-height: 1.5; letter-spacing: normal;
+            white-space: pre-wrap; /* Keeps paragraph breaks intact */
+            color: #222;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <a href="index.html" style="display: block; margin-bottom: 20px; color: #007bff; text-decoration: none; font-weight: bold;">&larr; Back to Hub</a>
+        
+        <h2>Dyslexia-Friendly Document Converter</h2>
+        <p>Paste text below to strip complex formatting and instantly apply readability standards.</p>
+
+        <textarea id="input-text" placeholder="Paste document or exam text here..."></textarea>
+
+        <div class="controls">
+            <div class="control-group">
+                <label>Font Style</label>
+                <select id="font-select">
+                    <option value="'Comic Sans MS', 'Chalkboard SE', sans-serif">Comic Sans</option>
+                    <option value="Arial, sans-serif">Arial</option>
+                    <option value="'Trebuchet MS', sans-serif">Trebuchet MS</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>Letter Spacing</label>
+                <select id="spacing-select">
+                    <option value="normal">Normal</option>
+                    <option value="1.5px">Wide</option>
+                    <option value="3px">Extra Wide</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>Line Height</label>
+                <select id="line-height-select">
+                    <option value="1.5">1.5 (Standard)</option>
+                    <option value="2.0">2.0 (Double)</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>Page Tint</label>
+                <select id="tint-select">
+                    <option value="#fffff8">Soft Cream</option>
+                    <option value="#eef2f5">Pale Blue</option>
+                    <option value="#f0f5ec">Mint Green</option>
+                    <option value="#fff5f5">Soft Rose</option>
+                    <option value="#ffffff">Pure White</option>
+                </select>
+            </div>
+        </div>
+
+        <div id="output-container" style="font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif;">Your standardized text will appear here...</div>
+    </div>
+
+<script>
+    const inputText = document.getElementById('input-text');
+    const outputContainer = document.getElementById('output-container');
+    const fontSelect = document.getElementById('font-select');
+    const spacingSelect = document.getElementById('spacing-select');
+    const lineHeightSelect = document.getElementById('line-height-select');
+    const tintSelect = document.getElementById('tint-select');
+
+    function updateOutput() {
+        const text = inputText.value;
+        outputContainer.textContent = text || "Your standardized text will appear here...";
+
+        outputContainer.style.fontFamily = fontSelect.value;
+        outputContainer.style.letterSpacing = spacingSelect.value;
+        outputContainer.style.lineHeight = lineHeightSelect.value;
+        outputContainer.style.backgroundColor = tintSelect.value;
+    }
+
+    // Automatically update the display whenever a setting is changed or text is typed
+    inputText.addEventListener('input', updateOutput);
+    fontSelect.addEventListener('change', updateOutput);
+    spacingSelect.addEventListener('change', updateOutput);
+    lineHeightSelect.addEventListener('change', updateOutput);
+    tintSelect.addEventListener('change', updateOutput);
+</script>
+</body>
+</html>
