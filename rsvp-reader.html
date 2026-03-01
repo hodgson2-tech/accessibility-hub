@@ -3,20 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Accessible RSVP Speed Reader</title>
+    <title>RSVP Speed Reader</title>
     <link rel="stylesheet" href="css/style.css">
     <style>
         .tool-wrapper { display: flex; flex-direction: column; align-items: center; }
-        #reader-container { width: 100%; max-width: 500px; height: 120px; border: 3px solid var(--primary-color); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 42px; font-weight: bold; margin-bottom: 20px; background-color: var(--card-bg); box-shadow: var(--card-shadow); }
-        .word-container { display: flex; width: 100%; font-family: monospace; }
-        .left-part { width: 50%; text-align: right; }
-        .center-letter { color: #e63946; } 
-        .right-part { width: 50%; text-align: left; }
-        textarea { width: 100%; max-width: 500px; height: 150px; margin-bottom: 20px; padding: 10px; border-radius: 4px; border: 1px solid var(--primary-color); font-size: 16px; background-color: var(--bg-color); color: var(--text-color); }
+        #reader-container {
+            width: 100%; max-width: 500px; height: 120px;
+            border: 3px solid var(--primary-color); border-radius: 8px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            font-size: 42px; font-weight: bold; margin-bottom: 8px;
+            background-color: var(--card-bg); box-shadow: var(--card-shadow);
+            position: relative;
+        }
+        .word-container { display: flex; width: 100%; font-family: monospace; justify-content: center; }
+        .left-part { text-align: right; }
+        .center-letter { color: #e63946; }
+        .right-part { text-align: left; }
+        #progress-display {
+            width: 100%; max-width: 500px; text-align: right;
+            font-size: 13px; color: var(--text-color); opacity: 0.6;
+            margin-bottom: 12px; font-style: italic;
+        }
+        #progress-bar-track {
+            width: 100%; max-width: 500px; height: 4px;
+            background: var(--border-color, #ddd); border-radius: 2px; margin-bottom: 16px;
+        }
+        #progress-bar-fill {
+            height: 100%; width: 0%; background: var(--primary-color);
+            border-radius: 2px; transition: width 0.1s linear;
+        }
+        label { font-weight: bold; display: block; margin-bottom: 6px; }
+        textarea { width: 100%; max-width: 500px; height: 150px; margin-bottom: 20px; padding: 10px; border-radius: 4px; border: 1px solid var(--primary-color); font-size: 16px; background-color: var(--bg-color); color: var(--text-color); box-sizing: border-box; }
         .controls { display: flex; flex-direction: column; gap: 15px; width: 100%; max-width: 500px;}
         .control-group { display: flex; justify-content: space-between; align-items: center; background: var(--card-bg); padding: 10px; border-radius: 6px; box-shadow: var(--card-shadow);}
-        button { padding: 10px 20px; font-size: 16px; cursor: pointer; border: none; border-radius: 4px; background-color: var(--primary-color); color: white; font-weight: bold; }
-        #stop-btn { background-color: #dc3545; }
+        .btn-row { display: flex; gap: 10px; background: none !important; box-shadow: none !important; padding: 0 !important; }
+        .btn-row button { flex: 1; padding: 10px 20px; font-size: 16px; cursor: pointer; border: none; border-radius: 4px; background-color: var(--primary-color); color: white; font-weight: bold; }
+        #pause-btn { background-color: #ffc107; color: #000; }
+        #reset-btn { background-color: #6c757d; }
+        .shortcut-hint { font-size: 12px; opacity: 0.5; text-align: center; }
+        #reader-status { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
     </style>
 </head>
 <body>
@@ -25,70 +50,181 @@
         if (localStorage.getItem('hub-font') && localStorage.getItem('hub-font') !== 'default') document.body.classList.add(localStorage.getItem('hub-font'));
     </script>
 
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
     <div class="container tool-wrapper">
         <a href="index.html" style="display: block; margin-bottom: 20px; color: var(--primary-color); text-decoration: none; font-weight: bold; width: 100%; max-width: 500px; text-align: left;">&larr; Back to Hub</a>
 
-        <div id="reader-container">
-            <div id="word-display" style="display: none;" class="word-container">
-                <span class="left-part" id="left-part"></span>
-                <span class="center-letter" id="center-letter"></span>
-                <span class="right-part" id="right-part"></span>
-            </div>
-        </div>
+        <main id="main-content" style="width: 100%; max-width: 500px; display: contents;">
+            <h1 style="width: 100%; max-width: 500px; text-align: left; margin-bottom: 4px;">RSVP Speed Reader</h1>
+            <p style="width: 100%; max-width: 500px; text-align: left; margin-bottom: 16px; color: var(--text-color);">Read faster with single-word focus and adjustable speed. Use <kbd>Space</kbd> to pause and resume.</p>
 
-        <textarea id="text-input" placeholder="Paste your text here..."></textarea>
+            <!-- Screen-reader live region announces each word aloud -->
+            <div
+                id="reader-status"
+                role="status"
+                aria-live="assertive"
+                aria-atomic="true"
+                aria-label="Current word being read"
+            ></div>
 
-        <div class="controls">
-            <div class="control-group" style="background: none; box-shadow: none; padding: 0;">
-                <button id="start-btn">Start Reading</button>
-                <button id="stop-btn">Pause / Stop</button>
+            <div id="reader-container" aria-hidden="true">
+                <div id="word-display" style="display: none;" class="word-container">
+                    <span class="left-part" id="left-part"></span>
+                    <span class="center-letter" id="center-letter"></span>
+                    <span class="right-part" id="right-part"></span>
+                </div>
             </div>
-            <div class="control-group">
-                <label><strong>Speed:</strong> <span id="wpm-display">300</span> WPM</label>
-                <input type="range" id="wpm-slider" min="300" max="900" step="25" value="300" style="width: 200px;">
+
+            <div id="progress-bar-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Reading progress">
+                <div id="progress-bar-fill"></div>
             </div>
-        </div>
+            <div id="progress-display" aria-hidden="true">—</div>
+
+            <label for="text-input">Paste your text:</label>
+            <textarea id="text-input" placeholder="Paste your text here..."></textarea>
+
+            <div class="controls">
+                <div class="control-group btn-row">
+                    <button id="start-btn" aria-label="Start or resume reading">&#9654; Play</button>
+                    <button id="pause-btn" aria-label="Pause reading">&#9646;&#9646; Pause</button>
+                    <button id="reset-btn" aria-label="Reset reading to beginning">&#8635; Reset</button>
+                </div>
+                <div class="control-group">
+                    <label for="wpm-slider" style="margin: 0;"><strong>Speed:</strong> <span id="wpm-display">300</span> WPM</label>
+                    <input type="range" id="wpm-slider" min="100" max="900" step="25" value="300" style="width: 180px;" aria-label="Reading speed in words per minute">
+                </div>
+            </div>
+            <p class="shortcut-hint"><kbd>Space</kbd> — Play / Pause &nbsp;|&nbsp; <kbd>R</kbd> — Reset</p>
+        </main>
     </div>
 
 <script>
-    let words = []; let currentIndex = 0; let playing = false; let timeoutId = null;
-    const textInput = document.getElementById('text-input');
-    const startBtn = document.getElementById('start-btn'); const stopBtn = document.getElementById('stop-btn');
-    const wpmSlider = document.getElementById('wpm-slider'); const wpmDisplay = document.getElementById('wpm-display');
-    const wordDisplay = document.getElementById('word-display');
-    const leftPartEl = document.getElementById('left-part'); const centerLetterEl = document.getElementById('center-letter'); const rightPartEl = document.getElementById('right-part');
+    let words = [];
+    let currentIndex = 0;
+    let playing = false;
+    let timeoutId = null;
 
-    wpmSlider.addEventListener('input', (e) => wpmDisplay.textContent = e.target.value);
+    const textInput = document.getElementById('text-input');
+    const startBtn = document.getElementById('start-btn');
+    const pauseBtn = document.getElementById('pause-btn');
+    const resetBtn = document.getElementById('reset-btn');
+    const wpmSlider = document.getElementById('wpm-slider');
+    const wpmDisplay = document.getElementById('wpm-display');
+    const wordDisplay = document.getElementById('word-display');
+    const leftPartEl = document.getElementById('left-part');
+    const centerLetterEl = document.getElementById('center-letter');
+    const rightPartEl = document.getElementById('right-part');
+    const progressDisplay = document.getElementById('progress-display');
+    const progressBarFill = document.getElementById('progress-bar-fill');
+    const progressBar = document.getElementById('progress-bar-track');
+    const readerStatus = document.getElementById('reader-status');
+
+    wpmSlider.addEventListener('input', e => wpmDisplay.textContent = e.target.value);
+
+    // Reset word array when text changes, so stale position doesn't carry over
+    textInput.addEventListener('input', () => {
+        pause();
+        currentIndex = 0;
+        words = [];
+        wordDisplay.style.display = 'none';
+        updateProgress(0, 0);
+    });
 
     function getPivotIndex(word) {
         const len = word.length;
-        if (len <= 1) return 0; if (len >= 2 && len <= 5) return 1; if (len >= 6 && len <= 9) return 2; if (len >= 10 && len <= 13) return 3; return 4;
+        if (len <= 1) return 0;
+        if (len <= 5) return 1;
+        if (len <= 9) return 2;
+        if (len <= 13) return 3;
+        return 4;
     }
 
     function displayWord(word) {
         const pivot = getPivotIndex(word);
-        leftPartEl.textContent = word.substring(0, pivot); centerLetterEl.textContent = word.charAt(pivot); rightPartEl.textContent = word.substring(pivot + 1);
+        leftPartEl.textContent = word.substring(0, pivot);
+        centerLetterEl.textContent = word.charAt(pivot);
+        rightPartEl.textContent = word.substring(pivot + 1);
         wordDisplay.style.display = 'flex';
+        // Announce to screen readers
+        readerStatus.textContent = word;
+    }
+
+    function updateProgress(index, total) {
+        if (total === 0) {
+            progressDisplay.textContent = '—';
+            progressBarFill.style.width = '0%';
+            progressBar.setAttribute('aria-valuenow', 0);
+            return;
+        }
+        const pct = Math.round((index / total) * 100);
+        progressDisplay.textContent = `Word ${index} of ${total}`;
+        progressBarFill.style.width = pct + '%';
+        progressBar.setAttribute('aria-valuenow', pct);
     }
 
     function play() {
-        if (currentIndex >= words.length) { playing = false; wordDisplay.style.display = 'none'; currentIndex = 0; return; }
-        displayWord(words[currentIndex]); currentIndex++;
+        if (currentIndex >= words.length) {
+            playing = false;
+            wordDisplay.style.display = 'none';
+            updateProgress(words.length, words.length);
+            readerStatus.textContent = 'Reading complete.';
+            currentIndex = 0;
+            return;
+        }
+        displayWord(words[currentIndex]);
+        currentIndex++;
+        updateProgress(currentIndex, words.length);
+
         let delay = 60000 / parseInt(wpmSlider.value, 10);
         const currentWord = words[currentIndex - 1];
         if (currentWord.endsWith('.') || currentWord.endsWith('!') || currentWord.endsWith('?')) delay *= 1.8;
         else if (currentWord.endsWith(',') || currentWord.endsWith(';')) delay *= 1.3;
+
         timeoutId = setTimeout(play, delay);
     }
 
+    function pause() {
+        playing = false;
+        clearTimeout(timeoutId);
+    }
+
+    function resetReading() {
+        pause();
+        currentIndex = 0;
+        words = [];
+        wordDisplay.style.display = 'none';
+        updateProgress(0, 0);
+        readerStatus.textContent = 'Reset.';
+    }
+
     startBtn.addEventListener('click', () => {
-        if (playing) return; 
-        const text = textInput.value.trim(); if (!text) return;
-        if (currentIndex === 0) words = text.split(/\s+/);
-        playing = true; play();
+        if (playing) return;
+        const text = textInput.value.trim();
+        if (!text) return;
+        if (currentIndex === 0 || words.length === 0) words = text.split(/\s+/);
+        playing = true;
+        play();
     });
 
-    stopBtn.addEventListener('click', () => { playing = false; clearTimeout(timeoutId); });
+    pauseBtn.addEventListener('click', () => pause());
+    resetBtn.addEventListener('click', () => resetReading());
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', e => {
+        if (e.target === textInput) return; // Don't intercept typing in textarea
+        if (e.code === 'Space') {
+            e.preventDefault();
+            if (playing) {
+                pause();
+            } else {
+                startBtn.click();
+            }
+        }
+        if (e.code === 'KeyR') {
+            resetReading();
+        }
+    });
 </script>
 </body>
 </html>

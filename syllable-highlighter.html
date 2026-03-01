@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Syllable Highlighter</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        textarea {
+            width: 100%; height: 150px; margin-bottom: 16px; padding: 10px;
+            border-radius: 4px; border: 1px solid var(--primary-color);
+            font-size: 16px; box-sizing: border-box;
+            background: var(--bg-color); color: var(--text-color);
+        }
+        .action-row { display: flex; gap: 10px; margin-bottom: 20px; }
+        .action-row button {
+            flex: 1; padding: 10px 20px; font-size: 16px; cursor: pointer;
+            border: none; border-radius: 4px; background-color: var(--primary-color);
+            color: white; font-weight: bold;
+        }
+        .copy-btn { background-color: #6c757d !important; }
+        .print-btn { background-color: #28a745 !important; }
+        .legend {
+            display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;
+            background: var(--card-bg); padding: 12px 16px; border-radius: 8px;
+            box-shadow: var(--card-shadow); border: 1px solid var(--border-color);
+            font-size: 14px; align-items: center;
+        }
+        .legend-item { display: flex; align-items: center; gap: 5px; }
+        .legend-swatch { width: 14px; height: 14px; border-radius: 3px; flex-shrink: 0; }
+        .options-bar {
+            display: flex; flex-wrap: wrap; gap: 12px; align-items: center;
+            margin-bottom: 16px; background: var(--card-bg); padding: 12px 16px;
+            border-radius: 8px; box-shadow: var(--card-shadow);
+            border: 1px solid var(--border-color); font-size: 14px;
+        }
+        .options-bar label { font-weight: bold; }
+        .options-bar input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; }
+        .font-size-select {
+            padding: 5px 8px; border: 1px solid var(--primary-color); border-radius: 4px;
+            font-size: 14px; background: var(--bg-color); color: var(--text-color);
+        }
+    </style>
+</head>
+<body>
+    <script>
+        if (localStorage.getItem('hub-theme') === 'dark') document.body.setAttribute('data-theme', 'dark');
+        if (localStorage.getItem('hub-font') && localStorage.getItem('hub-font') !== 'default') document.body.classList.add(localStorage.getItem('hub-font'));
+    </script>
+
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
+    <div class="container">
+        <a href="index.html" style="display: block; margin-bottom: 20px; color: var(--primary-color); text-decoration: none; font-weight: bold;">&larr; Back to Hub</a>
+
+        <main id="main-content">
+            <h1>Syllable Highlighter</h1>
+            <p>Paste text below to colour-code syllables, making it easier to sound out words and decode unfamiliar text. Useful for phonemic awareness and early reading.</p>
+
+            <label for="input-text" style="font-weight: bold; display: block; margin-bottom: 6px;">Your text:</label>
+            <textarea id="input-text" placeholder="Paste or type your text here..."></textarea>
+
+            <div class="options-bar" role="group" aria-label="Display options">
+                <label for="show-dots">
+                    <input type="checkbox" id="show-dots" checked>
+                    Show syllable dots (beau·ti·ful)
+                </label>
+                <label for="font-size-sel">Text size:</label>
+                <select id="font-size-sel" class="font-size-select" aria-label="Output text size">
+                    <option value="18px">Small</option>
+                    <option value="22px" selected>Medium</option>
+                    <option value="28px">Large</option>
+                    <option value="34px">X-Large</option>
+                </select>
+            </div>
+
+            <div class="action-row">
+                <button id="highlight-btn">Highlight Syllables</button>
+                <button id="copy-btn" class="copy-btn" aria-label="Copy text to clipboard">Copy</button>
+                <button id="print-btn" class="print-btn no-print" aria-label="Print or save as PDF">Print / PDF</button>
+            </div>
+
+            <div class="legend" aria-label="Colour legend">
+                <strong>Colours:</strong>
+                <span class="legend-item"><span class="legend-swatch" style="background:var(--syl-0);"></span><span class="syl-0">1st syllable</span></span>
+                <span class="legend-item"><span class="legend-swatch" style="background:var(--syl-1);"></span><span class="syl-1">2nd syllable</span></span>
+                <span class="legend-item"><span class="legend-swatch" style="background:var(--syl-2);"></span><span class="syl-2">3rd syllable</span></span>
+                <span class="legend-item"><span class="legend-swatch" style="background:var(--syl-3);"></span><span class="syl-3">4th+ syllable</span></span>
+            </div>
+
+            <div
+                id="output-container"
+                class="syllable-output"
+                role="region"
+                aria-label="Syllable-highlighted text output"
+                aria-live="polite"
+                aria-atomic="true"
+            >Your highlighted text will appear here...</div>
+        </main>
+    </div>
+
+    <script src="js/word-predict.js"></script>
+<script>
+    const inputText = document.getElementById('input-text');
+    const outputContainer = document.getElementById('output-container');
+    const highlightBtn = document.getElementById('highlight-btn');
+    const copyBtn = document.getElementById('copy-btn');
+    const printBtn = document.getElementById('print-btn');
+    const showDots = document.getElementById('show-dots');
+    const fontSizeSel = document.getElementById('font-size-sel');
+
+    fontSizeSel.addEventListener('change', () => {
+        outputContainer.style.fontSize = fontSizeSel.value;
+    });
+    outputContainer.style.fontSize = fontSizeSel.value;
+
+    // Syllabification — vowel-group based splitting
+    function syllabify(word) {
+        const isVowel = c => /[aeiouy]/i.test(c);
+        const isAlpha = c => /[a-zA-Z]/.test(c);
+        const n = word.length;
+        if (n <= 3) return [word];
+
+        // Find vowel group spans (contiguous vowel sequences)
+        const vowelGroups = [];
+        let inVowel = false;
+        let vStart = -1;
+        for (let i = 0; i <= n; i++) {
+            const v = i < n && isAlpha(word[i]) && isVowel(word[i]);
+            if (v && !inVowel) { vStart = i; inVowel = true; }
+            else if (!v && inVowel) { vowelGroups.push([vStart, i]); inVowel = false; }
+        }
+
+        if (vowelGroups.length <= 1) return [word];
+
+        const splits = [0];
+        for (let g = 0; g < vowelGroups.length - 1; g++) {
+            const [, vEnd] = vowelGroups[g];
+            const [vNext] = vowelGroups[g + 1];
+            const cons = vNext - vEnd; // number of consonants (or non-vowel letters) between groups
+            if (cons === 1) {
+                splits.push(vEnd);         // V|CV — open syllable
+            } else {
+                splits.push(vEnd + 1);     // VC|CV — closed syllable
+            }
+        }
+        splits.push(n);
+
+        const result = [];
+        for (let i = 0; i < splits.length - 1; i++) {
+            if (splits[i] < splits[i + 1]) result.push(word.slice(splits[i], splits[i + 1]));
+        }
+        return result.length ? result : [word];
+    }
+
+    function escapeHtml(str) {
+        return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    function highlightWord(word, startColorIdx) {
+        // Split off leading/trailing punctuation
+        const leadMatch = word.match(/^([^a-zA-Z]*)/);
+        const trailMatch = word.match(/([^a-zA-Z]*)$/);
+        const lead = leadMatch ? leadMatch[1] : '';
+        const trail = trailMatch ? trailMatch[1] : '';
+        const core = word.slice(lead.length, word.length - trail.length);
+
+        if (!core) return escapeHtml(word);
+
+        const syllables = syllabify(core);
+        const dots = showDots.checked;
+        let html = escapeHtml(lead);
+
+        syllables.forEach((syl, i) => {
+            const colorIdx = (startColorIdx + i) % 4;
+            html += `<span class="syl-${colorIdx}">${escapeHtml(syl)}</span>`;
+            if (dots && i < syllables.length - 1) {
+                html += `<span class="syl-dot" aria-hidden="true">&middot;</span>`;
+            }
+        });
+
+        html += escapeHtml(trail);
+        return html;
+    }
+
+    highlightBtn.addEventListener('click', () => {
+        const text = inputText.value;
+        if (!text.trim()) {
+            outputContainer.innerHTML = 'Please paste some text first.';
+            return;
+        }
+
+        // Split by whitespace but preserve the whitespace tokens
+        const tokens = text.split(/(\s+)/);
+        let wordColorIdx = 0;
+        const html = tokens.map(token => {
+            if (!token.trim()) {
+                // Whitespace — preserve (escape newlines as <br> for display)
+                return token.replace(/\n/g, '<br>').replace(/ /g, '&nbsp;');
+            }
+            const result = highlightWord(token, wordColorIdx);
+            // Advance color index by number of syllables in this word
+            const core = token.replace(/^[^a-zA-Z]*|[^a-zA-Z]*$/g, '');
+            wordColorIdx = (wordColorIdx + (core ? syllabify(core).length : 0)) % 4;
+            return result;
+        }).join('');
+
+        outputContainer.innerHTML = html;
+        outputContainer.style.fontSize = fontSizeSel.value;
+    });
+
+    showDots.addEventListener('change', () => {
+        // Re-run if there's content
+        if (inputText.value.trim()) highlightBtn.click();
+    });
+
+    copyBtn.addEventListener('click', () => {
+        const text = outputContainer.innerText || outputContainer.textContent;
+        if (!text || text === 'Your highlighted text will appear here...') return;
+        navigator.clipboard.writeText(text).then(() => {
+            const orig = copyBtn.textContent;
+            copyBtn.textContent = 'Copied!';
+            setTimeout(() => { copyBtn.textContent = orig; }, 1500);
+        }).catch(() => {
+            const el = document.createElement('textarea');
+            el.value = text;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+            copyBtn.textContent = 'Copied!';
+            setTimeout(() => { copyBtn.textContent = 'Copy'; }, 1500);
+        });
+    });
+
+    printBtn.addEventListener('click', () => window.print());
+</script>
+</body>
+</html>
