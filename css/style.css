@@ -43,6 +43,25 @@ body {
 body.font-lexend { font-family: 'Lexend', sans-serif; }
 body.font-comic { font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif; }
 
+/* Skip-to-content link for keyboard users */
+.skip-link {
+    position: absolute;
+    top: -100%;
+    left: 0;
+    padding: 10px 18px;
+    background: var(--primary-color);
+    color: #fff;
+    font-weight: bold;
+    font-size: 14px;
+    text-decoration: none;
+    border-radius: 0 0 6px 0;
+    z-index: 10000;
+    transition: top 0.15s ease;
+}
+.skip-link:focus {
+    top: 0;
+}
+
 /* Accessibility: High-contrast focus states for keyboard navigation */
 *:focus-visible {
     outline: 3px solid var(--focus-color);

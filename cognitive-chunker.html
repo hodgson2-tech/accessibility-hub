@@ -7,10 +7,14 @@
     <link rel="stylesheet" href="css/style.css">
     <style>
         textarea { width: 100%; height: 150px; margin-bottom: 20px; padding: 10px; border-radius: 4px; border: 1px solid var(--primary-color); font-size: 16px; box-sizing: border-box; background: var(--bg-color); color: var(--text-color); }
-        button { padding: 10px 20px; font-size: 16px; cursor: pointer; border: none; border-radius: 4px; background-color: var(--primary-color); color: white; font-weight: bold; width: 100%; margin-bottom: 20px; }
-        #output-container { background: var(--card-bg); padding: 20px; border-radius: 8px; box-shadow: var(--card-shadow); min-height: 100px; font-size: 18px; line-height: 1.8; color: var(--text-color); }
+        .action-row { display: flex; gap: 10px; margin-bottom: 20px; }
+        .action-row button { flex: 1; padding: 10px 20px; font-size: 16px; cursor: pointer; border: none; border-radius: 4px; background-color: var(--primary-color); color: white; font-weight: bold; }
+        .copy-btn { background-color: #6c757d !important; }
+        .copy-btn:hover { background-color: #5a6268 !important; }
+        #output-container { background: var(--card-bg); padding: 20px; border-radius: 8px; box-shadow: var(--card-shadow); min-height: 100px; font-size: 18px; line-height: 1.8; color: var(--text-color); border: 1px solid var(--border-color); }
         ul { margin: 0; padding-left: 0; }
         li { margin-bottom: 15px; padding: 15px; background: var(--bg-color); border-left: 5px solid var(--primary-color); border-radius: 4px; list-style-type: none; box-shadow: var(--card-shadow); color: var(--text-color); }
+        .output-label { font-weight: bold; font-size: 14px; margin-bottom: 8px; color: var(--text-color); opacity: 0.7; }
     </style>
 </head>
 <body>
@@ -19,29 +23,86 @@
         if (localStorage.getItem('hub-font') && localStorage.getItem('hub-font') !== 'default') document.body.classList.add(localStorage.getItem('hub-font'));
     </script>
 
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
     <div class="container">
         <a href="index.html" style="display: block; margin-bottom: 20px; color: var(--primary-color); text-decoration: none; font-weight: bold;">&larr; Back to Hub</a>
-        <h2>Cognitive Load Reducer</h2>
-        <p>Paste dense text below. It will be broken down into manageable, bite-sized chunks to reduce visual overwhelm.</p>
 
-        <textarea id="input-text" placeholder="Paste a wall of text here..."></textarea>
-        <button id="chunk-btn">Simplify Text</button>
-        <div id="output-container">Your chunked text will appear here...</div>
+        <main id="main-content">
+            <h1>Cognitive Load Reducer</h1>
+            <p>Paste dense text below. It will be broken down into manageable, bite-sized chunks to reduce visual overwhelm.</p>
+
+            <label for="input-text" style="font-weight: bold; display: block; margin-bottom: 6px;">Your text:</label>
+            <textarea id="input-text" placeholder="Paste a wall of text here..."></textarea>
+
+            <div class="action-row">
+                <button id="chunk-btn">Simplify Text</button>
+                <button id="copy-btn" class="copy-btn" aria-label="Copy chunked text to clipboard">Copy Output</button>
+            </div>
+
+            <div class="output-label" id="output-label" aria-hidden="true">Output:</div>
+            <div
+                id="output-container"
+                role="region"
+                aria-label="Chunked text output"
+                aria-live="polite"
+                aria-atomic="true"
+            >Your chunked text will appear here...</div>
+        </main>
     </div>
 
 <script>
-    document.getElementById('chunk-btn').addEventListener('click', () => {
+    // Safely escape HTML special characters to prevent XSS
+    function escapeHtml(text) {
+        return text
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    const chunkBtn = document.getElementById('chunk-btn');
+    const copyBtn = document.getElementById('copy-btn');
+    const outputContainer = document.getElementById('output-container');
+
+    chunkBtn.addEventListener('click', () => {
         const text = document.getElementById('input-text').value;
-        const outputContainer = document.getElementById('output-container');
-        if (!text.trim()) { outputContainer.innerHTML = "Please paste some text first."; return; }
+        if (!text.trim()) {
+            outputContainer.innerHTML = "Please paste some text first.";
+            return;
+        }
 
         const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
         let htmlList = '<ul>';
         sentences.forEach(sentence => {
-            if (sentence.trim()) htmlList += `<li>${sentence.trim()}</li>`;
+            if (sentence.trim()) {
+                // Escape user content before injecting into the DOM
+                htmlList += `<li>${escapeHtml(sentence.trim())}</li>`;
+            }
         });
         htmlList += '</ul>';
         outputContainer.innerHTML = htmlList;
+    });
+
+    copyBtn.addEventListener('click', () => {
+        const text = outputContainer.innerText || outputContainer.textContent;
+        if (!text || text === 'Your chunked text will appear here...') return;
+        navigator.clipboard.writeText(text).then(() => {
+            const original = copyBtn.textContent;
+            copyBtn.textContent = 'Copied!';
+            setTimeout(() => { copyBtn.textContent = original; }, 1500);
+        }).catch(() => {
+            // Fallback for older browsers
+            const el = document.createElement('textarea');
+            el.value = text;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+            copyBtn.textContent = 'Copied!';
+            setTimeout(() => { copyBtn.textContent = 'Copy Output'; }, 1500);
+        });
     });
 </script>
 </body>

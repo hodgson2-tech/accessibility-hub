@@ -9,8 +9,12 @@
         textarea { width: 100%; height: 150px; margin-bottom: 20px; padding: 10px; border-radius: 4px; border: 1px solid var(--primary-color); font-size: 16px; box-sizing: border-box; background: var(--bg-color); color: var(--text-color); }
         .controls { background: var(--card-bg); padding: 20px; border-radius: 8px; box-shadow: var(--card-shadow); display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 20px; justify-content: space-between; align-items: center; border: 1px solid var(--border-color); }
         button { padding: 10px 20px; font-size: 16px; cursor: pointer; border: none; border-radius: 4px; background-color: var(--primary-color); color: white; font-weight: bold; }
-        #output-container { background: var(--card-bg); padding: 40px; border-radius: 8px; box-shadow: var(--card-shadow); min-height: 300px; font-size: 20px; line-height: 1.8; white-space: pre-wrap; color: var(--text-color); }
+        #output-container { background: var(--card-bg); padding: 40px; border-radius: 8px; box-shadow: var(--card-shadow); min-height: 300px; font-size: 20px; line-height: 1.8; white-space: pre-wrap; color: var(--text-color); border: 1px solid var(--border-color); }
         #focus-mask { position: fixed; left: 0; right: 0; height: 100px; background: transparent; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.85); pointer-events: none; display: none; z-index: 9999; transition: height 0.1s; }
+        .slider-group { display: flex; flex-direction: column; gap: 4px; }
+        .slider-group label { font-weight: bold; font-size: 14px; color: var(--text-color); margin-bottom: 0; }
+        .slider-row { display: flex; align-items: center; gap: 10px; }
+        #height-value { font-size: 13px; color: var(--text-color); min-width: 40px; }
     </style>
 </head>
 <body>
@@ -19,25 +23,52 @@
         if (localStorage.getItem('hub-font') && localStorage.getItem('hub-font') !== 'default') document.body.classList.add(localStorage.getItem('hub-font'));
     </script>
 
-    <div id="focus-mask"></div>
+    <div id="focus-mask" role="presentation" aria-hidden="true"></div>
+
+    <a href="#main-content" class="skip-link">Skip to main content</a>
 
     <div class="container" style="position: relative; z-index: 1;">
         <a href="index.html" style="display: block; margin-bottom: 20px; color: var(--primary-color); text-decoration: none; font-weight: bold;">&larr; Back to Hub</a>
-        
-        <h2>High-Contrast Focus Mask</h2>
-        <p>Paste text below and activate the mask. It acts as a digital reading ruler, following your finger or mouse to eliminate visual distractions.</p>
 
-        <textarea id="input-text" placeholder="Paste your reading material here..."></textarea>
+        <main id="main-content">
+            <h1>High-Contrast Focus Mask</h1>
+            <p>Paste text below and activate the mask. It acts as a digital reading ruler, following your finger or mouse to eliminate visual distractions.</p>
 
-        <div class="controls">
-            <button id="toggle-mask-btn">Turn Mask ON</button>
-            <div style="display: flex; flex-direction: column;">
-                <label style="font-weight: bold; font-size: 14px; margin-bottom: 5px; color: var(--text-color);">Ruler Height:</label>
-                <input type="range" id="height-slider" min="40" max="250" value="100">
+            <label for="input-text" style="font-weight: bold; display: block; margin-bottom: 6px;">Your reading material:</label>
+            <textarea id="input-text" placeholder="Paste your reading material here..."></textarea>
+
+            <div class="controls">
+                <button
+                    id="toggle-mask-btn"
+                    aria-pressed="false"
+                    aria-label="Toggle focus mask reading ruler"
+                >Turn Mask ON</button>
+
+                <div class="slider-group">
+                    <label for="height-slider">Ruler Height:</label>
+                    <div class="slider-row">
+                        <input
+                            type="range"
+                            id="height-slider"
+                            min="40"
+                            max="250"
+                            value="100"
+                            aria-label="Focus mask height in pixels"
+                            aria-valuemin="40"
+                            aria-valuemax="250"
+                            aria-valuenow="100"
+                        >
+                        <span id="height-value" aria-live="polite">100px</span>
+                    </div>
+                </div>
             </div>
-        </div>
 
-        <div id="output-container">Your reading material will appear here...</div>
+            <div
+                id="output-container"
+                role="region"
+                aria-label="Reading area"
+            >Your reading material will appear here...</div>
+        </main>
     </div>
 
 <script>
@@ -46,6 +77,7 @@
     const toggleBtn = document.getElementById('toggle-mask-btn');
     const focusMask = document.getElementById('focus-mask');
     const heightSlider = document.getElementById('height-slider');
+    const heightValue = document.getElementById('height-value');
 
     let isMaskActive = false;
     let maskHeight = 100;
@@ -56,27 +88,30 @@
 
     toggleBtn.addEventListener('click', () => {
         isMaskActive = !isMaskActive;
+        toggleBtn.setAttribute('aria-pressed', String(isMaskActive));
         if (isMaskActive) {
             focusMask.style.display = 'block';
             toggleBtn.textContent = 'Turn Mask OFF';
-            toggleBtn.style.backgroundColor = '#dc3545'; 
+            toggleBtn.style.backgroundColor = '#dc3545';
         } else {
             focusMask.style.display = 'none';
             toggleBtn.textContent = 'Turn Mask ON';
-            toggleBtn.style.backgroundColor = 'var(--primary-color)'; 
+            toggleBtn.style.backgroundColor = 'var(--primary-color)';
         }
     });
 
-    heightSlider.addEventListener('input', (e) => {
+    heightSlider.addEventListener('input', e => {
         maskHeight = parseInt(e.target.value, 10);
         focusMask.style.height = maskHeight + 'px';
+        heightValue.textContent = maskHeight + 'px';
+        heightSlider.setAttribute('aria-valuenow', maskHeight);
     });
 
-    document.addEventListener('mousemove', (e) => {
+    document.addEventListener('mousemove', e => {
         if (isMaskActive) focusMask.style.top = (e.clientY - (maskHeight / 2)) + 'px';
     });
 
-    document.addEventListener('touchmove', (e) => {
+    document.addEventListener('touchmove', e => {
         if (isMaskActive) focusMask.style.top = (e.touches[0].clientY - (maskHeight / 2)) + 'px';
     }, { passive: true });
 </script>

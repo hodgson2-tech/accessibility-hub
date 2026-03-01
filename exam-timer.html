@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Exam Time Extension Calculator</title>
+    <title>Exam Adjustment Timer</title>
     <link rel="stylesheet" href="css/style.css">
     <style>
         .timer-container { width: 100%; max-width: 600px; margin: 0 auto; }
@@ -12,14 +12,15 @@
         label { font-weight: bold; display: block; margin-bottom: 5px; font-size: 14px; color: var(--text-color); }
         input[type="time"], input[type="number"] { width: 100%; padding: 10px; border: 1px solid var(--primary-color); border-radius: 6px; font-size: 16px; box-sizing: border-box; background: var(--bg-color); color: var(--text-color); }
         .adj-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
-        .adj-btn { padding: 10px 5px; border: 2px solid var(--primary-color); background: transparent; color: var(--text-color); font-weight: bold; border-radius: 6px; cursor: pointer; transition: all 0.2s; font-size: 14px;}
-        .adj-btn.active { background: var(--primary-color); color: white; }
-        .dashboard { background: var(--card-bg); padding: 30px 20px; border-radius: 12px; text-align: center; box-shadow: var(--card-shadow); border: 2px solid var(--primary-color);}
+        .adj-btn { padding: 10px 5px; border: 2px solid var(--primary-color); background: transparent; color: var(--text-color); font-weight: bold; border-radius: 6px; cursor: pointer; transition: all 0.2s; font-size: 14px; }
+        .adj-btn.active, .adj-btn[aria-pressed="true"] { background: var(--primary-color); color: white; }
+        .dashboard { background: var(--card-bg); padding: 30px 20px; border-radius: 12px; text-align: center; box-shadow: var(--card-shadow); border: 2px solid var(--primary-color); }
         .time-display { font-size: 3.5rem; font-weight: bold; color: var(--primary-color); margin: 10px 0; line-height: 1; }
         .sub-text { font-size: 16px; opacity: 0.8; margin-bottom: 20px; color: var(--text-color); }
         .break-btn { background: #ffc107; color: #000; font-size: 1.2rem; padding: 15px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; border: none; transition: background 0.2s; }
         .break-btn.active-break { background: #dc3545; color: white; animation: pulse 1.5s infinite; }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
+        .section-label { font-weight: bold; margin-bottom: 8px; display: block; font-size: 14px; color: var(--text-color); }
     </style>
 </head>
 <body>
@@ -28,39 +29,56 @@
         if (localStorage.getItem('hub-font') && localStorage.getItem('hub-font') !== 'default') document.body.classList.add(localStorage.getItem('hub-font'));
     </script>
 
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
     <div class="timer-container" style="padding: 20px;">
         <a href="index.html" style="display: block; margin-bottom: 20px; color: var(--primary-color); text-decoration: none; font-weight: bold;">&larr; Back to Hub</a>
-        
-        <h2 style="margin-top:0;">Invigilator Dashboard</h2>
-        <p>Calculate dynamic finish times with reasonable adjustments and supervised rest breaks.</p>
 
-        <div class="input-group">
-            <div class="input-row">
-                <div>
-                    <label>Standard Duration (mins)</label>
-                    <input type="number" id="duration" value="90" min="1">
+        <main id="main-content">
+            <h1 style="margin-top: 0;">Invigilator Dashboard</h1>
+            <p>Calculate dynamic finish times with reasonable adjustments and supervised rest breaks.</p>
+
+            <div class="input-group">
+                <div class="input-row">
+                    <div>
+                        <label for="duration">Standard Duration (mins)</label>
+                        <input type="number" id="duration" value="90" min="1" aria-describedby="duration-hint">
+                        <span id="duration-hint" style="font-size: 12px; opacity: 0.6; margin-top: 3px; display: block;">Enter the exam's standard duration</span>
+                    </div>
+                    <div>
+                        <label for="start-time">Actual Start Time</label>
+                        <input type="time" id="start-time" required>
+                    </div>
                 </div>
-                <div>
-                    <label>Actual Start Time</label>
-                    <input type="time" id="start-time" required>
+
+                <span class="section-label" id="adj-label">Extra Time Adjustment</span>
+                <div class="adj-grid" role="group" aria-labelledby="adj-label">
+                    <button class="adj-btn active" data-mult="1" aria-pressed="true">Standard<br>(0%)</button>
+                    <button class="adj-btn" data-mult="1.25" aria-pressed="false">+25%<br>Time</button>
+                    <button class="adj-btn" data-mult="1.5" aria-pressed="false">+50%<br>Time</button>
+                    <button class="adj-btn" data-mult="2" aria-pressed="false">+100%<br>Time</button>
                 </div>
             </div>
-            
-            <label>Extra Time Adjustment</label>
-            <div class="adj-grid">
-                <button class="adj-btn active" data-mult="1">Standard<br>(0%)</button>
-                <button class="adj-btn" data-mult="1.25">+25%<br>Time</button>
-                <button class="adj-btn" data-mult="1.5">+50%<br>Time</button>
-                <button class="adj-btn" data-mult="2">+100%<br>Time</button>
-            </div>
-        </div>
 
-        <div class="dashboard">
-            <h3 style="margin: 0; color: var(--text-color);">Official Finish Time</h3>
-            <div class="time-display" id="finish-time-display">--:--</div>
-            <div class="sub-text" id="break-tracker-text">Total Rest Break Time Added: 0 mins</div>
-            <button class="break-btn" id="break-btn">⏸️ Start Supervised Rest Break</button>
-        </div>
+            <div class="dashboard">
+                <h2 style="margin: 0; color: var(--text-color); font-size: 1rem; text-transform: uppercase; letter-spacing: 1px; opacity: 0.7;">Official Finish Time</h2>
+                <div
+                    class="time-display"
+                    id="finish-time-display"
+                    role="timer"
+                    aria-live="polite"
+                    aria-atomic="true"
+                    aria-label="Official finish time"
+                >--:--</div>
+                <div class="sub-text" id="break-tracker-text" aria-live="polite">Total Rest Break Time Added: 0 mins</div>
+                <button
+                    class="break-btn"
+                    id="break-btn"
+                    aria-pressed="false"
+                    aria-label="Start or end supervised rest break"
+                >&#9646;&#9646; Start Supervised Rest Break</button>
+            </div>
+        </main>
     </div>
 
 <script>
@@ -78,16 +96,18 @@
 
     window.onload = () => {
         const now = new Date();
-        const hours = String(now.getHours()).padStart(2, '0');
-        const minutes = String(now.getMinutes()).padStart(2, '0');
-        startTimeInput.value = `${hours}:${minutes}`;
+        startTimeInput.value = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
         calculateFinishTime();
     };
 
     adjBtns.forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            adjBtns.forEach(b => b.classList.remove('active'));
+        btn.addEventListener('click', e => {
+            adjBtns.forEach(b => {
+                b.classList.remove('active');
+                b.setAttribute('aria-pressed', 'false');
+            });
             e.currentTarget.classList.add('active');
+            e.currentTarget.setAttribute('aria-pressed', 'true');
             multiplier = parseFloat(e.currentTarget.getAttribute('data-mult'));
             calculateFinishTime();
         });
@@ -100,14 +120,16 @@
         if (!breakStartTime) {
             breakStartTime = Date.now();
             breakBtn.classList.add('active-break');
-            breakBtn.innerHTML = '▶️ End Rest Break & Resume Exam';
+            breakBtn.innerHTML = '&#9654; End Rest Break &amp; Resume Exam';
+            breakBtn.setAttribute('aria-pressed', 'true');
             breakInterval = setInterval(calculateFinishTime, 1000);
         } else {
             clearInterval(breakInterval);
             totalBreakTimeMs += (Date.now() - breakStartTime);
             breakStartTime = null;
             breakBtn.classList.remove('active-break');
-            breakBtn.innerHTML = '⏸️ Start Supervised Rest Break';
+            breakBtn.innerHTML = '&#9646;&#9646; Start Supervised Rest Break';
+            breakBtn.setAttribute('aria-pressed', 'false');
             calculateFinishTime();
         }
     });
@@ -122,13 +144,12 @@
         const examStart = new Date();
         examStart.setHours(hours, minutes, 0, 0);
 
-        let currentActiveBreak = 0;
-        if (breakStartTime) {
-            currentActiveBreak = Date.now() - breakStartTime;
-        }
+        let currentActiveBreak = breakStartTime ? Date.now() - breakStartTime : 0;
 
-        const examEnd = new Date(examStart.getTime() + (totalAllowedMins * 60000) + totalBreakTimeMs + currentActiveBreak);
-        
+        const examEnd = new Date(
+            examStart.getTime() + (totalAllowedMins * 60000) + totalBreakTimeMs + currentActiveBreak
+        );
+
         const finalHours = String(examEnd.getHours()).padStart(2, '0');
         const finalMinutes = String(examEnd.getMinutes()).padStart(2, '0');
         finishTimeDisplay.textContent = `${finalHours}:${finalMinutes}`;
