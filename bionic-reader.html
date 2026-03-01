@@ -32,9 +32,10 @@
             <label for="input-text" style="font-weight: bold; display: block; margin-bottom: 6px;">Your text:</label>
             <textarea id="input-text" placeholder="Paste your text here..."></textarea>
 
-            <div class="action-row">
+            <div class="action-row no-print">
                 <button id="format-btn">Format Text</button>
                 <button id="copy-btn" class="copy-btn" aria-label="Copy formatted text to clipboard">Copy Output</button>
+                <button id="print-btn" style="background-color:#28a745;" aria-label="Print or save as PDF">Print / PDF</button>
             </div>
 
             <div
@@ -47,7 +48,10 @@
         </main>
     </div>
 
+    <script src="js/word-predict.js"></script>
 <script>
+    document.getElementById('print-btn').addEventListener('click', () => window.print());
+
     // Escape a single character for safe HTML injection
     function escapeChar(ch) {
         switch (ch) {

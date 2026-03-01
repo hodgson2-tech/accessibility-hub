@@ -1,16 +1,19 @@
-const CACHE_NAME = 'hub-cache-v2';
+const CACHE_NAME = 'hub-cache-v3';
 
 // All files the app will download and save for offline use
 const urlsToCache = [
     './',
     './index.html',
     './css/style.css',
+    './js/tts.js',
+    './js/word-predict.js',
     './rsvp-reader.html',
     './bionic-reader.html',
     './cognitive-chunker.html',
     './dyslexia-converter.html',
     './focus-mask.html',
     './exam-timer.html',
+    './syllable-highlighter.html',
     './manifest.json'
 ];
 

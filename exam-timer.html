@@ -6,21 +6,110 @@
     <title>Exam Adjustment Timer</title>
     <link rel="stylesheet" href="css/style.css">
     <style>
-        .timer-container { width: 100%; max-width: 600px; margin: 0 auto; }
-        .input-group { background: var(--card-bg); padding: 20px; border-radius: 8px; box-shadow: var(--card-shadow); margin-bottom: 20px; border: 1px solid var(--border-color); }
-        .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
-        label { font-weight: bold; display: block; margin-bottom: 5px; font-size: 14px; color: var(--text-color); }
-        input[type="time"], input[type="number"] { width: 100%; padding: 10px; border: 1px solid var(--primary-color); border-radius: 6px; font-size: 16px; box-sizing: border-box; background: var(--bg-color); color: var(--text-color); }
-        .adj-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
-        .adj-btn { padding: 10px 5px; border: 2px solid var(--primary-color); background: transparent; color: var(--text-color); font-weight: bold; border-radius: 6px; cursor: pointer; transition: all 0.2s; font-size: 14px; }
-        .adj-btn.active, .adj-btn[aria-pressed="true"] { background: var(--primary-color); color: white; }
-        .dashboard { background: var(--card-bg); padding: 30px 20px; border-radius: 12px; text-align: center; box-shadow: var(--card-shadow); border: 2px solid var(--primary-color); }
-        .time-display { font-size: 3.5rem; font-weight: bold; color: var(--primary-color); margin: 10px 0; line-height: 1; }
-        .sub-text { font-size: 16px; opacity: 0.8; margin-bottom: 20px; color: var(--text-color); }
-        .break-btn { background: #ffc107; color: #000; font-size: 1.2rem; padding: 15px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; border: none; transition: background 0.2s; }
-        .break-btn.active-break { background: #dc3545; color: white; animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
-        .section-label { font-weight: bold; margin-bottom: 8px; display: block; font-size: 14px; color: var(--text-color); }
+        .page-wrap { max-width: 720px; margin: 0 auto; padding: 20px; }
+
+        /* ---- Shared exam settings ---- */
+        .shared-settings {
+            background: var(--card-bg); padding: 20px; border-radius: 8px;
+            box-shadow: var(--card-shadow); margin-bottom: 20px;
+            border: 1px solid var(--border-color);
+        }
+        .shared-settings h2 { margin: 0 0 14px; font-size: 1rem; color: var(--text-color); }
+        .setting-row { display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap; }
+        .setting-field { display: flex; flex-direction: column; flex: 1; min-width: 120px; }
+        label { font-weight: bold; font-size: 13px; margin-bottom: 5px; color: var(--text-color); }
+        input[type="number"], input[type="time"] {
+            width: 100%; padding: 9px 10px; border: 1px solid var(--primary-color);
+            border-radius: 6px; font-size: 15px; box-sizing: border-box;
+            background: var(--bg-color); color: var(--text-color);
+        }
+
+        /* ---- Add student form ---- */
+        .student-form {
+            background: var(--card-bg); padding: 18px 20px; border-radius: 8px;
+            box-shadow: var(--card-shadow); margin-bottom: 20px;
+            border: 2px dashed var(--primary-color);
+        }
+        .student-form h2 { margin: 0 0 12px; font-size: 0.95rem; color: var(--text-color); opacity: 0.8; }
+        .add-form-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
+        .add-form-row input[type="text"] {
+            flex: 2; min-width: 120px; padding: 9px 10px; border: 1px solid var(--primary-color);
+            border-radius: 6px; font-size: 15px; background: var(--bg-color); color: var(--text-color);
+        }
+        .add-form-row input[type="time"] { flex: 1; min-width: 110px; }
+        .adj-grid-mini { display: flex; gap: 6px; flex-wrap: wrap; }
+        .adj-btn-mini {
+            padding: 7px 10px; border: 2px solid var(--primary-color); background: transparent;
+            color: var(--text-color); font-weight: bold; border-radius: 6px; cursor: pointer;
+            font-size: 12px; transition: all 0.15s; white-space: nowrap;
+        }
+        .adj-btn-mini.active, .adj-btn-mini[aria-pressed="true"] {
+            background: var(--primary-color); color: white;
+        }
+        .add-btn {
+            padding: 9px 20px; border: none; border-radius: 6px; background: var(--primary-color);
+            color: white; font-weight: bold; font-size: 15px; cursor: pointer; white-space: nowrap;
+        }
+
+        /* ---- Student cards ---- */
+        #student-list { display: flex; flex-direction: column; gap: 14px; }
+
+        .student-card {
+            background: var(--card-bg); border-radius: 10px; box-shadow: var(--card-shadow);
+            border: 2px solid var(--primary-color); overflow: hidden;
+        }
+        .student-header {
+            display: flex; align-items: center; gap: 10px;
+            padding: 12px 16px; background: var(--primary-color);
+        }
+        .student-name-display {
+            flex: 1; font-size: 1rem; font-weight: bold; color: white;
+            background: transparent; border: none; outline: none;
+            border-bottom: 1px solid rgba(255,255,255,0.4); padding: 2px 4px;
+        }
+        .student-name-display::placeholder { color: rgba(255,255,255,0.6); }
+        .remove-btn {
+            background: rgba(255,255,255,0.2); border: none; color: white;
+            font-size: 18px; cursor: pointer; border-radius: 4px;
+            width: 28px; height: 28px; display: flex; align-items: center;
+            justify-content: center; font-weight: bold; flex-shrink: 0;
+        }
+        .remove-btn:hover { background: rgba(255,255,255,0.4); }
+
+        .student-body { padding: 14px 16px; }
+        .student-meta { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
+        .student-time-input {
+            padding: 6px 8px; border: 1px solid var(--primary-color); border-radius: 5px;
+            font-size: 14px; background: var(--bg-color); color: var(--text-color); width: 110px;
+        }
+        .student-adj { display: flex; gap: 5px; flex-wrap: wrap; }
+        .s-adj-btn {
+            padding: 5px 9px; border: 2px solid var(--primary-color); background: transparent;
+            color: var(--text-color); font-weight: bold; border-radius: 5px; cursor: pointer;
+            font-size: 12px; transition: all 0.15s;
+        }
+        .s-adj-btn.active { background: var(--primary-color); color: white; }
+
+        .student-dashboard {
+            display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+            background: var(--bg-color); border-radius: 7px; padding: 10px 14px;
+        }
+        .student-finish-time {
+            font-size: 2.2rem; font-weight: bold; color: var(--primary-color); line-height: 1;
+        }
+        .student-break-info { font-size: 13px; opacity: 0.7; color: var(--text-color); flex: 1; }
+        .s-break-btn {
+            padding: 8px 14px; border: none; border-radius: 6px; font-weight: bold;
+            cursor: pointer; font-size: 13px; background: #ffc107; color: #000;
+            transition: background 0.2s; white-space: nowrap;
+        }
+        .s-break-btn.active-break { background: #dc3545; color: white; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.65; } }
+
+        .empty-state {
+            text-align: center; padding: 30px; color: var(--text-color);
+            opacity: 0.5; font-style: italic;
+        }
     </style>
 </head>
 <body>
@@ -31,133 +120,234 @@
 
     <a href="#main-content" class="skip-link">Skip to main content</a>
 
-    <div class="timer-container" style="padding: 20px;">
+    <div class="page-wrap">
         <a href="index.html" style="display: block; margin-bottom: 20px; color: var(--primary-color); text-decoration: none; font-weight: bold;">&larr; Back to Hub</a>
 
         <main id="main-content">
             <h1 style="margin-top: 0;">Invigilator Dashboard</h1>
-            <p>Calculate dynamic finish times with reasonable adjustments and supervised rest breaks.</p>
+            <p>Calculate dynamic finish times with reasonable adjustments and supervised rest breaks. Add multiple students to track them simultaneously.</p>
 
-            <div class="input-group">
-                <div class="input-row">
-                    <div>
-                        <label for="duration">Standard Duration (mins)</label>
-                        <input type="number" id="duration" value="90" min="1" aria-describedby="duration-hint">
-                        <span id="duration-hint" style="font-size: 12px; opacity: 0.6; margin-top: 3px; display: block;">Enter the exam's standard duration</span>
+            <!-- Shared exam duration -->
+            <div class="shared-settings" role="group" aria-labelledby="settings-heading">
+                <h2 id="settings-heading">Exam Settings (shared)</h2>
+                <div class="setting-row">
+                    <div class="setting-field">
+                        <label for="shared-duration">Standard Duration (mins)</label>
+                        <input type="number" id="shared-duration" value="90" min="1" aria-describedby="duration-hint">
+                        <span id="duration-hint" style="font-size:12px;opacity:0.6;margin-top:3px;">This duration is used for all students</span>
                     </div>
-                    <div>
-                        <label for="start-time">Actual Start Time</label>
-                        <input type="time" id="start-time" required>
-                    </div>
-                </div>
-
-                <span class="section-label" id="adj-label">Extra Time Adjustment</span>
-                <div class="adj-grid" role="group" aria-labelledby="adj-label">
-                    <button class="adj-btn active" data-mult="1" aria-pressed="true">Standard<br>(0%)</button>
-                    <button class="adj-btn" data-mult="1.25" aria-pressed="false">+25%<br>Time</button>
-                    <button class="adj-btn" data-mult="1.5" aria-pressed="false">+50%<br>Time</button>
-                    <button class="adj-btn" data-mult="2" aria-pressed="false">+100%<br>Time</button>
                 </div>
             </div>
 
-            <div class="dashboard">
-                <h2 style="margin: 0; color: var(--text-color); font-size: 1rem; text-transform: uppercase; letter-spacing: 1px; opacity: 0.7;">Official Finish Time</h2>
-                <div
-                    class="time-display"
-                    id="finish-time-display"
-                    role="timer"
-                    aria-live="polite"
-                    aria-atomic="true"
-                    aria-label="Official finish time"
-                >--:--</div>
-                <div class="sub-text" id="break-tracker-text" aria-live="polite">Total Rest Break Time Added: 0 mins</div>
-                <button
-                    class="break-btn"
-                    id="break-btn"
-                    aria-pressed="false"
-                    aria-label="Start or end supervised rest break"
-                >&#9646;&#9646; Start Supervised Rest Break</button>
+            <!-- Add student form -->
+            <div class="student-form no-print" role="group" aria-labelledby="add-heading">
+                <h2 id="add-heading">&#43; Add Student</h2>
+                <div class="add-form-row">
+                    <input type="text" id="new-name" placeholder="Student name" aria-label="Student name">
+                    <div style="display:flex;flex-direction:column;gap:4px;">
+                        <label for="new-start" style="font-size:12px;">Start Time</label>
+                        <input type="time" id="new-start" aria-label="Student start time">
+                    </div>
+                    <div style="display:flex;flex-direction:column;gap:4px;">
+                        <span style="font-size:12px;font-weight:bold;color:var(--text-color);">Adjustment</span>
+                        <div class="adj-grid-mini" id="new-adj-group" role="group" aria-label="Select time adjustment">
+                            <button class="adj-btn-mini active" data-mult="1" aria-pressed="true">Standard</button>
+                            <button class="adj-btn-mini" data-mult="1.25" aria-pressed="false">+25%</button>
+                            <button class="adj-btn-mini" data-mult="1.5" aria-pressed="false">+50%</button>
+                            <button class="adj-btn-mini" data-mult="2" aria-pressed="false">+100%</button>
+                        </div>
+                    </div>
+                    <button class="add-btn" id="add-student-btn" aria-label="Add student to dashboard">Add Student</button>
+                </div>
+            </div>
+
+            <!-- Student cards -->
+            <div id="student-list" role="list" aria-label="Student timers">
+                <div class="empty-state" id="empty-state">No students added yet. Use the form above to add your first student.</div>
             </div>
         </main>
     </div>
 
 <script>
-    const durationInput = document.getElementById('duration');
-    const startTimeInput = document.getElementById('start-time');
-    const adjBtns = document.querySelectorAll('.adj-btn');
-    const finishTimeDisplay = document.getElementById('finish-time-display');
-    const breakBtn = document.getElementById('break-btn');
-    const breakTrackerText = document.getElementById('break-tracker-text');
+    const sharedDuration = document.getElementById('shared-duration');
+    const newName = document.getElementById('new-name');
+    const newStart = document.getElementById('new-start');
+    const addBtn = document.getElementById('add-student-btn');
+    const studentList = document.getElementById('student-list');
+    const emptyState = document.getElementById('empty-state');
+    const newAdjBtns = document.querySelectorAll('#new-adj-group .adj-btn-mini');
 
-    let multiplier = 1;
-    let totalBreakTimeMs = 0;
-    let breakStartTime = null;
-    let breakInterval = null;
+    let newMultiplier = 1;
+    const students = [];
 
-    window.onload = () => {
+    // Set default start time to now
+    (function () {
         const now = new Date();
-        startTimeInput.value = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-        calculateFinishTime();
-    };
+        newStart.value = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+    })();
 
-    adjBtns.forEach(btn => {
-        btn.addEventListener('click', e => {
-            adjBtns.forEach(b => {
-                b.classList.remove('active');
-                b.setAttribute('aria-pressed', 'false');
-            });
-            e.currentTarget.classList.add('active');
-            e.currentTarget.setAttribute('aria-pressed', 'true');
-            multiplier = parseFloat(e.currentTarget.getAttribute('data-mult'));
-            calculateFinishTime();
+    // Update duration for all existing student cards when shared duration changes
+    sharedDuration.addEventListener('input', () => {
+        students.forEach(s => recalculate(s));
+    });
+
+    // New-student adjustment buttons
+    newAdjBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            newAdjBtns.forEach(b => { b.classList.remove('active'); b.setAttribute('aria-pressed','false'); });
+            btn.classList.add('active');
+            btn.setAttribute('aria-pressed','true');
+            newMultiplier = parseFloat(btn.dataset.mult);
         });
     });
 
-    durationInput.addEventListener('input', calculateFinishTime);
-    startTimeInput.addEventListener('input', calculateFinishTime);
+    addBtn.addEventListener('click', () => {
+        const name = newName.value.trim() || `Student ${students.length + 1}`;
+        const startTime = newStart.value;
+        if (!startTime) { newStart.focus(); return; }
 
-    breakBtn.addEventListener('click', () => {
-        if (!breakStartTime) {
-            breakStartTime = Date.now();
-            breakBtn.classList.add('active-break');
-            breakBtn.innerHTML = '&#9654; End Rest Break &amp; Resume Exam';
-            breakBtn.setAttribute('aria-pressed', 'true');
-            breakInterval = setInterval(calculateFinishTime, 1000);
-        } else {
-            clearInterval(breakInterval);
-            totalBreakTimeMs += (Date.now() - breakStartTime);
-            breakStartTime = null;
-            breakBtn.classList.remove('active-break');
-            breakBtn.innerHTML = '&#9646;&#9646; Start Supervised Rest Break';
-            breakBtn.setAttribute('aria-pressed', 'false');
-            calculateFinishTime();
-        }
+        const student = {
+            id: 'stu-' + Date.now(),
+            name,
+            startTime,
+            multiplier: newMultiplier,
+            totalBreakMs: 0,
+            breakStartTime: null,
+            breakInterval: null
+        };
+
+        students.push(student);
+        renderCard(student);
+
+        // Reset form name, advance multiplier label back to Standard
+        newName.value = '';
+        emptyState.style.display = 'none';
     });
 
-    function calculateFinishTime() {
-        const standardMins = parseInt(durationInput.value) || 0;
-        const timeVal = startTimeInput.value;
-        if (!timeVal || standardMins === 0) return;
+    function adjLabel(mult) {
+        const map = { '1': 'Standard (0%)', '1.25': '+25% Time', '1.5': '+50% Time', '2': '+100% Time' };
+        return map[String(mult)] || `×${mult}`;
+    }
 
-        const totalAllowedMins = standardMins * multiplier;
-        const [hours, minutes] = timeVal.split(':').map(Number);
+    function renderCard(s) {
+        const card = document.createElement('div');
+        card.className = 'student-card';
+        card.id = s.id;
+        card.setAttribute('role', 'listitem');
+
+        card.innerHTML = `
+            <div class="student-header">
+                <input class="student-name-display" type="text" value="${escAttr(s.name)}" placeholder="Student name" aria-label="Student name">
+                <button class="remove-btn" aria-label="Remove ${escAttr(s.name)}">&#215;</button>
+            </div>
+            <div class="student-body">
+                <div class="student-meta">
+                    <div style="display:flex;flex-direction:column;gap:3px;">
+                        <label style="font-size:12px;font-weight:bold;color:var(--text-color);">Start Time</label>
+                        <input type="time" class="student-time-input" value="${escAttr(s.startTime)}" aria-label="Start time for ${escAttr(s.name)}">
+                    </div>
+                    <div style="display:flex;flex-direction:column;gap:3px;">
+                        <span style="font-size:12px;font-weight:bold;color:var(--text-color);">Adjustment</span>
+                        <div class="student-adj" role="group" aria-label="Time adjustment">
+                            ${[1,1.25,1.5,2].map(m =>
+                                `<button class="s-adj-btn${m === s.multiplier ? ' active' : ''}" data-mult="${m}" aria-pressed="${m === s.multiplier}">${adjLabel(m)}</button>`
+                            ).join('')}
+                        </div>
+                    </div>
+                </div>
+                <div class="student-dashboard">
+                    <div class="student-finish-time" aria-live="polite" aria-label="Finish time">--:--</div>
+                    <div class="student-break-info">Break: 0m 0s</div>
+                    <button class="s-break-btn" aria-pressed="false" aria-label="Start rest break">&#9646;&#9646; Start Break</button>
+                </div>
+            </div>`;
+
+        // Wire up events
+        const nameInput = card.querySelector('.student-name-display');
+        const removeBtn = card.querySelector('.remove-btn');
+        const timeInput = card.querySelector('.student-time-input');
+        const adjBtns = card.querySelectorAll('.s-adj-btn');
+        const finishEl = card.querySelector('.student-finish-time');
+        const breakInfo = card.querySelector('.student-break-info');
+        const breakBtn = card.querySelector('.s-break-btn');
+
+        nameInput.addEventListener('input', () => {
+            s.name = nameInput.value;
+            removeBtn.setAttribute('aria-label', 'Remove ' + s.name);
+        });
+
+        removeBtn.addEventListener('click', () => {
+            if (s.breakInterval) clearInterval(s.breakInterval);
+            students.splice(students.indexOf(s), 1);
+            card.remove();
+            if (students.length === 0) emptyState.style.display = '';
+        });
+
+        timeInput.addEventListener('input', () => {
+            s.startTime = timeInput.value;
+            recalculate(s);
+        });
+
+        adjBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                adjBtns.forEach(b => { b.classList.remove('active'); b.setAttribute('aria-pressed','false'); });
+                btn.classList.add('active');
+                btn.setAttribute('aria-pressed','true');
+                s.multiplier = parseFloat(btn.dataset.mult);
+                recalculate(s);
+            });
+        });
+
+        breakBtn.addEventListener('click', () => {
+            if (!s.breakStartTime) {
+                s.breakStartTime = Date.now();
+                breakBtn.classList.add('active-break');
+                breakBtn.innerHTML = '&#9654; End Break';
+                breakBtn.setAttribute('aria-pressed','true');
+                s.breakInterval = setInterval(() => recalculate(s), 1000);
+            } else {
+                clearInterval(s.breakInterval);
+                s.totalBreakMs += (Date.now() - s.breakStartTime);
+                s.breakStartTime = null;
+                breakBtn.classList.remove('active-break');
+                breakBtn.innerHTML = '&#9646;&#9646; Start Break';
+                breakBtn.setAttribute('aria-pressed','false');
+                recalculate(s);
+            }
+        });
+
+        // Store DOM references on the student object for recalculate()
+        s._finishEl = finishEl;
+        s._breakInfo = breakInfo;
+
+        studentList.appendChild(card);
+        recalculate(s);
+    }
+
+    function recalculate(s) {
+        const stdMins = parseInt(sharedDuration.value) || 0;
+        const timeVal = s.startTime;
+        if (!timeVal || stdMins === 0) { s._finishEl.textContent = '--:--'; return; }
+
+        const totalMins = stdMins * s.multiplier;
+        const [h, m] = timeVal.split(':').map(Number);
         const examStart = new Date();
-        examStart.setHours(hours, minutes, 0, 0);
+        examStart.setHours(h, m, 0, 0);
 
-        let currentActiveBreak = breakStartTime ? Date.now() - breakStartTime : 0;
+        const currentBreak = s.breakStartTime ? Date.now() - s.breakStartTime : 0;
+        const examEnd = new Date(examStart.getTime() + totalMins * 60000 + s.totalBreakMs + currentBreak);
 
-        const examEnd = new Date(
-            examStart.getTime() + (totalAllowedMins * 60000) + totalBreakTimeMs + currentActiveBreak
-        );
+        s._finishEl.textContent =
+            `${String(examEnd.getHours()).padStart(2,'0')}:${String(examEnd.getMinutes()).padStart(2,'0')}`;
 
-        const finalHours = String(examEnd.getHours()).padStart(2, '0');
-        const finalMinutes = String(examEnd.getMinutes()).padStart(2, '0');
-        finishTimeDisplay.textContent = `${finalHours}:${finalMinutes}`;
+        const totalBreakSecs = Math.floor((s.totalBreakMs + currentBreak) / 1000);
+        const bm = Math.floor(totalBreakSecs / 60);
+        const bs = totalBreakSecs % 60;
+        s._breakInfo.textContent = `Break: ${bm}m ${bs}s`;
+    }
 
-        const totalBreakSecs = Math.floor((totalBreakTimeMs + currentActiveBreak) / 1000);
-        const breakMins = Math.floor(totalBreakSecs / 60);
-        const breakSecsRemainder = totalBreakSecs % 60;
-        breakTrackerText.textContent = `Total Rest Break Time Added: ${breakMins}m ${breakSecsRemainder}s`;
+    function escAttr(str) {
+        return String(str).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     }
 </script>
 </body>

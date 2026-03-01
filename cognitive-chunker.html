@@ -35,9 +35,10 @@
             <label for="input-text" style="font-weight: bold; display: block; margin-bottom: 6px;">Your text:</label>
             <textarea id="input-text" placeholder="Paste a wall of text here..."></textarea>
 
-            <div class="action-row">
+            <div class="action-row no-print">
                 <button id="chunk-btn">Simplify Text</button>
                 <button id="copy-btn" class="copy-btn" aria-label="Copy chunked text to clipboard">Copy Output</button>
+                <button id="print-btn" style="background-color:#28a745;" aria-label="Print or save as PDF">Print / PDF</button>
             </div>
 
             <div class="output-label" id="output-label" aria-hidden="true">Output:</div>
@@ -51,7 +52,10 @@
         </main>
     </div>
 
+    <script src="js/word-predict.js"></script>
 <script>
+    document.getElementById('print-btn').addEventListener('click', () => window.print());
+
     // Safely escape HTML special characters to prevent XSS
     function escapeHtml(text) {
         return text

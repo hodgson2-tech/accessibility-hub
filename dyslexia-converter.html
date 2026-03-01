@@ -6,31 +6,39 @@
     <title>Dyslexia-Friendly Document Converter</title>
     <link rel="stylesheet" href="css/style.css">
     <style>
-        .controls { background: var(--card-bg); padding: 20px; border-radius: 8px; box-shadow: var(--card-shadow); display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; margin-bottom: 20px; border: 1px solid var(--border-color); }
+        .controls {
+            background: var(--card-bg); padding: 20px; border-radius: 8px;
+            box-shadow: var(--card-shadow);
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 15px; margin-bottom: 20px; border: 1px solid var(--border-color);
+        }
         .control-group { display: flex; flex-direction: column; }
         label { font-weight: bold; margin-bottom: 5px; font-size: 14px; color: var(--text-color); }
-        select { padding: 8px; border: 1px solid var(--primary-color); border-radius: 4px; font-size: 14px; width: 100%; background: var(--bg-color); color: var(--text-color); }
-        textarea { width: 100%; height: 150px; margin-bottom: 20px; padding: 10px; border-radius: 4px; border: 1px solid var(--primary-color); font-size: 16px; box-sizing: border-box; background: var(--bg-color); color: var(--text-color); }
-        /* Output uses CSS variables so dark mode is respected */
+        select {
+            padding: 8px; border: 1px solid var(--primary-color); border-radius: 4px;
+            font-size: 14px; width: 100%; background: var(--bg-color); color: var(--text-color);
+        }
+        textarea {
+            width: 100%; height: 150px; margin-bottom: 20px; padding: 10px;
+            border-radius: 4px; border: 1px solid var(--primary-color); font-size: 16px;
+            box-sizing: border-box; background: var(--bg-color); color: var(--text-color);
+        }
         #output-container {
-            background: #fffff8;
-            padding: 40px;
-            border-radius: 8px;
-            box-shadow: var(--card-shadow);
-            min-height: 200px;
-            font-size: 18px;
-            line-height: 1.5;
-            letter-spacing: normal;
-            white-space: pre-wrap;
-            /* Color respects dark mode via a data attribute on the container */
-            color: #222;
+            background: #fffff8; padding: 40px; border-radius: 8px;
+            box-shadow: var(--card-shadow); min-height: 200px;
+            font-size: 18px; line-height: 1.5; letter-spacing: normal;
+            white-space: pre-wrap; color: #222;
         }
-        [data-theme="dark"] #output-container {
-            color: #e0e0e0;
+        [data-theme="dark"] #output-container { color: #e0e0e0; }
+        .action-row { display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+        .action-row button {
+            padding: 8px 16px; font-size: 14px; cursor: pointer; border: none;
+            border-radius: 4px; background-color: #6c757d; color: white;
+            font-weight: bold; white-space: nowrap;
         }
-        .copy-row { display: flex; justify-content: flex-end; margin-bottom: 8px; }
-        .copy-btn { padding: 8px 18px; font-size: 14px; cursor: pointer; border: none; border-radius: 4px; background-color: #6c757d; color: white; font-weight: bold; }
-        .copy-btn:hover { background-color: #5a6268; }
+        .action-row button:hover { background-color: #5a6268; }
+        .print-btn { background-color: #28a745 !important; }
+        .print-btn:hover { background-color: #1e7e34 !important; }
     </style>
 </head>
 <body>
@@ -97,12 +105,17 @@
                 </div>
             </div>
 
-            <div class="copy-row">
-                <button id="copy-btn" class="copy-btn" aria-label="Copy formatted text to clipboard">Copy Output</button>
+            <!-- TTS controls auto-rendered by tts.js -->
+            <div class="tts-controls no-print" data-target="output-container"></div>
+
+            <div class="action-row no-print">
+                <button id="copy-btn" aria-label="Copy formatted text to clipboard">Copy Output</button>
+                <button id="print-btn" class="print-btn" aria-label="Print or save as PDF">Print / PDF</button>
             </div>
 
             <div
                 id="output-container"
+                class="tts-target"
                 style="font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif;"
                 role="region"
                 aria-label="Dyslexia-friendly formatted text output"
@@ -112,6 +125,8 @@
         </main>
     </div>
 
+    <script src="js/tts.js"></script>
+    <script src="js/word-predict.js"></script>
 <script>
     const inputText = document.getElementById('input-text');
     const outputContainer = document.getElementById('output-container');
@@ -121,6 +136,7 @@
     const fontSizeSelect = document.getElementById('font-size-select');
     const tintSelect = document.getElementById('tint-select');
     const copyBtn = document.getElementById('copy-btn');
+    const printBtn = document.getElementById('print-btn');
 
     function updateOutput() {
         const text = inputText.value;
@@ -143,9 +159,9 @@
         const text = outputContainer.textContent;
         if (!text || text === 'Your standardized text will appear here...') return;
         navigator.clipboard.writeText(text).then(() => {
-            const original = copyBtn.textContent;
+            const orig = copyBtn.textContent;
             copyBtn.textContent = 'Copied!';
-            setTimeout(() => { copyBtn.textContent = original; }, 1500);
+            setTimeout(() => { copyBtn.textContent = orig; }, 1500);
         }).catch(() => {
             const el = document.createElement('textarea');
             el.value = text;
@@ -157,6 +173,8 @@
             setTimeout(() => { copyBtn.textContent = 'Copy Output'; }, 1500);
         });
     });
+
+    printBtn.addEventListener('click', () => window.print());
 </script>
 </body>
 </html>
