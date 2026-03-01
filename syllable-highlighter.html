@@ -196,7 +196,7 @@
         const html = tokens.map(token => {
             if (!token.trim()) {
                 // Whitespace — preserve (escape newlines as <br> for display)
-                return token.replace(/\n/g, '<br>').replace(/ /g, '&nbsp;');
+                return token.replace(/\n/g, '<br>');
             }
             const result = highlightWord(token, wordColorIdx);
             // Advance color index by number of syllables in this word
